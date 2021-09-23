@@ -8,7 +8,7 @@ import br.unb.cic.comnet.bandits.environment.GeneralParameters;
 public class BanditAlgorithmFactory {
 	
 	public static BanditAlgorithm create(String name) {
-		return create(name, GeneralParameters.EPSILON, GeneralParameters.NUM_OF_ROUNDS);
+		return create(name, GeneralParameters.getGeneralEpsilon(), GeneralParameters.getGeneralNumOfRounds());
 	}
 	
 	public static BanditAlgorithm create(String name, double epsilon, long horizon) {

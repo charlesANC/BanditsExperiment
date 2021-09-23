@@ -1,14 +1,9 @@
 package br.unb.cic.comnet.bandits.agents;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.time.LocalDateTime;
 import java.util.Set;
 
 import br.unb.cic.comnet.bandits.environment.Environment;
+import br.unb.cic.comnet.bandits.utils.FileUtils;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
@@ -120,7 +115,7 @@ public class Player extends Agent {
 	public void takeDown() {
 		String info = infoRounds.processRewards();
 		logger.log(Logger.INFO, info);
-		appendRatingsInfo("player_reward.txt", info);
+		FileUtils.appendRatingsInfo("player_reward.txt", info, logger);
 		
 		unpublishMe();
 		shutdown();
@@ -178,26 +173,5 @@ public class Player extends Agent {
 			logger.log(Logger.SEVERE, "I cannot publish myself. I am useless. I must die! " + getName());
 			doDelete();
 		}
-	}	
-	
-	private void appendRatingsInfo(String fileName, String info) {
-		String fullFileName = mountOutputFileName(fileName);
-		try (
-			 FileWriter fw = new FileWriter(fullFileName, true);
-			 BufferedWriter bw = new BufferedWriter(fw);
-			 PrintWriter pw = new PrintWriter(bw)
-		){
-			pw.println(info + ";" + LocalDateTime.now().toString());
-		} catch (IOException e) {
-			e.printStackTrace();
-			logger.log(Logger.WARNING, "Can not write out info!");			
-		}		
-	} 
-	
-	private String mountOutputFileName(String fileName) {
-		//String dir = System.getProperty("outDir", ".\\");
-		String dir = System.getProperty("outDir", "c:\\temp\\");
-		File file = new File(dir, fileName);
-		return file.getAbsolutePath();
 	}	
 }

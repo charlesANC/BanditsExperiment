@@ -1,11 +1,5 @@
 package br.unb.cic.comnet.bandits.agents;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +13,7 @@ import com.google.gson.reflect.TypeToken;
 import br.unb.cic.comnet.bandits.agents.trm.FIRETranscoderEvaluator;
 import br.unb.cic.comnet.bandits.algorithms.BanditAlgorithm;
 import br.unb.cic.comnet.bandits.algorithms.BanditAlgorithmFactory;
+import br.unb.cic.comnet.bandits.utils.FileUtils;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.core.AID;
 import jade.core.Agent;
@@ -156,7 +151,7 @@ public class Recommender extends Agent {
 				eval.append(line.toString() + "\r\n");
 				eval.append("----");
 				
-				appendRatingsInfo(getFileName(), line.toString());
+				FileUtils.appendRatingsInfo(getFileName(), line.toString(), logger);
 				
 				logger.log(Logger.INFO, eval.toString());
 			}
@@ -225,26 +220,5 @@ public class Recommender extends Agent {
 			logger.log(Logger.SEVERE, "I cannot publish myself. I am useless. I must die! " + getName());
 			doDelete();
 		}
-	}	
-	
-	private void appendRatingsInfo(String fileName, String info) {
-		String fullFileName = mountOutputFileName(fileName);
-		try (
-			 FileWriter fw = new FileWriter(fullFileName, true);
-			 BufferedWriter bw = new BufferedWriter(fw);
-			 PrintWriter pw = new PrintWriter(bw)
-		){
-			pw.println(info + ";" + LocalDateTime.now().toString());
-		} catch (IOException e) {
-			e.printStackTrace();
-			logger.log(Logger.WARNING, "Can not write out info!");			
-		}		
-	} 
-	
-	private String mountOutputFileName(String fileName) {
-		//String dir = System.getProperty("outDir", ".\\");
-		String dir = System.getProperty("outDir", "c:\\temp\\");
-		File file = new File(dir, fileName);
-		return file.getAbsolutePath();
 	}	
 }

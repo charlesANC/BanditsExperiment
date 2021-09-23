@@ -30,7 +30,7 @@ public class InfoRounds implements Serializable {
 	}
 
 	public boolean hasReachedEnd() {
-		return round >= GeneralParameters.NUM_OF_ROUNDS;
+		return round >= GeneralParameters.getGeneralNumOfRounds();
 	}
 	
 	public String getLastPulledArm() {
