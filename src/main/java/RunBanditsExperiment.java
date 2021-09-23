@@ -5,28 +5,30 @@ public class RunBanditsExperiment {
 	public static void main(String[] args) {
 		try {
 			String banditAlgorithm = args[0];
-			int honestWitnesses = Integer.valueOf(args[1]);
-			int cooptedWitnesses = Integer.valueOf(args[2]);
+			String useTrust = args[1];			
+			int honestWitnesses = Integer.valueOf(args[2]);
+			int cooptedWitnesses = Integer.valueOf(args[3]);
+
 			
-			jade.Boot.main(configuracao(banditAlgorithm, honestWitnesses, cooptedWitnesses));
+			jade.Boot.main(configuracao(banditAlgorithm, useTrust, honestWitnesses, cooptedWitnesses));
 		} catch (InvalidParameterException e) {
 			System.out.println("Erro: " + e.getMessage());
 		}
 	}
 	
-	private static String[] configuracao(String banditAlgorithm, int honestWitnesses, int cooptedWitnesses) {
+	private static String[] configuracao(String banditAlgorithm, String useTrust, int honestWitnesses, int cooptedWitnesses) {
 		return new String[] {
 				"-gui", 
 				" -agents " 
 						+ setUpWitnesses(honestWitnesses)
 						+ setUpCooptedWitnesses(cooptedWitnesses)
-						+ setUpRecommender(banditAlgorithm)
+						+ setUpRecommender(banditAlgorithm, useTrust)
 						+ setUpPlayer()
 			};				
 	}
 
-	private static String setUpRecommender(String banditAlgorithm) {
-		String algorithm = banditAlgorithm != null ? "(" + banditAlgorithm + ")" : "";
+	private static String setUpRecommender(String banditAlgorithm, String useTrust) {
+		String algorithm = banditAlgorithm != null ? "(" + banditAlgorithm + ", " + useTrust + ")" : "";
 		return "r1:br.unb.cic.comnet.bandits.agents.Recommender" + algorithm + ";";
 	}
 	

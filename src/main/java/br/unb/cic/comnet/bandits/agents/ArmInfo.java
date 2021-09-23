@@ -2,8 +2,6 @@ package br.unb.cic.comnet.bandits.agents;
 
 import java.util.Date;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,8 +42,8 @@ public class ArmInfo {
 
 	public ArmInfo(String name) {
 		this.name = name;
-		this.trustworth = 0.0D;
-		this.reliability = 0.0D;
+		this.trustworth = 0.5D;
+		this.reliability = 0.5D;
 		this.evaluations = new ConcurrentHashMap<String, Set<Rating>>();
 	}
 	

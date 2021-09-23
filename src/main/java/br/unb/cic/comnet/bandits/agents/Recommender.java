@@ -39,15 +39,26 @@ public class Recommender extends Agent {
 	private Map<String, ArmInfo> armsInfo;
 	private BanditAlgorithm recommendAlgorithm;
 	private String fileName;
+	private boolean useTrust = false;
+	
+	public String getFileName() {
+		if (fileName == null) {
+			fileName = "ratings_" 
+				+ recommendAlgorithm.getName() + "_" 
+				+ (useTrust?"T":"A") 
+				+ System.currentTimeMillis() 
+				+ "_.txt";
+		}
+		return fileName;
+	}
 	
 	public Recommender() {
 		this.armsInfo = new ConcurrentHashMap<String, ArmInfo>();
-		fileName = "ratings_" + System.currentTimeMillis() + ".txt";
 	}
 	
 	@Override
 	public void setup() {
-		createBanditAlgorithm();
+		interpretParameters();
 		
 		addBehaviour(new TickerBehaviour(this, 200) {
 			private static final long serialVersionUID = 1L;
@@ -100,6 +111,8 @@ public class Recommender extends Agent {
 			public void action() {
 				ACLMessage msg = myAgent.receive(template());
 				if (msg != null) {
+					new FIRETranscoderEvaluator().evaluateTranscoders(armsInfo.values(), "p1");					
+					
 					InfoRounds infoRounds = SerializationHelper
 							.unserialize(msg.getContent(), 
 									new TypeToken<InfoRounds>() {}); 
@@ -109,8 +122,6 @@ public class Recommender extends Agent {
 					response.setProtocol(MessageProtocols.Arm_Recomendation.name());
 					response.setContent(recommendedArm(infoRounds.getRound()));
 					getAgent().send(response);	
-					
-					new FIRETranscoderEvaluator().evaluateTranscoders(armsInfo.values(), "p1");
 				} else {
 					block();
 				}
@@ -123,7 +134,7 @@ public class Recommender extends Agent {
 			}			
 		});		
 		
-		addBehaviour(new TickerBehaviour(this, 1000) {
+		addBehaviour(new TickerBehaviour(this, 300) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -145,7 +156,7 @@ public class Recommender extends Agent {
 				eval.append(line.toString() + "\r\n");
 				eval.append("----");
 				
-				appendRatingsInfo(fileName, line.toString());
+				appendRatingsInfo(getFileName(), line.toString());
 				
 				logger.log(Logger.INFO, eval.toString());
 			}
@@ -154,10 +165,11 @@ public class Recommender extends Agent {
 		publishMe();
 	}
 	
-	private void createBanditAlgorithm() {
+	private void interpretParameters() {
 		String banditAlgorithmName = "simple_averaging";
 		if (getArguments() != null && getArguments().length != 0) {
 			banditAlgorithmName = getArguments()[0].toString();
+			useTrust = getArguments()[1].toString().equals("T");
 		}
 		this.recommendAlgorithm = BanditAlgorithmFactory.create(banditAlgorithmName);
 	}
@@ -184,7 +196,11 @@ public class Recommender extends Agent {
 	private Map<String, Double> resumeRating() {
 		Map<String, Double> resumed = new HashMap<String, Double>();
 		for(String arm : armsInfo.keySet()) {
-			resumed.put(arm, armsInfo.get(arm).meanEvaluation());
+			if (useTrust) {
+				resumed.put(arm, armsInfo.get(arm).getTrustworth());				
+			} else {
+				resumed.put(arm, armsInfo.get(arm).meanEvaluation());				
+			}
 		}	
 		return resumed;
 	}

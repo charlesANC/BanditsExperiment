@@ -15,7 +15,7 @@ public class BanditAlgorithmFactory {
 		Objects.requireNonNull(name, "Parameter name can not be null.");
 		
 		if (name.equals("simple_averaging")) {
-			return new SimpleAveraging();
+			return new OnlyExploiting();
 		}
 		
 		if (name.equals("epsilon_greedy")) {
@@ -32,6 +32,10 @@ public class BanditAlgorithmFactory {
 		
 		if (name.equals("ucb1")) {
 			return new UCB1();
+		}
+		
+		if (name.equals("only_exploiting")) {
+			return new OnlyExploiting();
 		}		
 		
 		throw new InvalidParameterException(name + " is not a valid bandit algorithm name.");
