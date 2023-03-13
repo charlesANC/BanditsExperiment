@@ -60,6 +60,7 @@ public class RunBanditsExperiment {
 						+ setUpCooptedWitnesses(cooptedWitnesses)
 						+ setUpRecommender(banditAlgorithm, useTrust)
 						+ setUpPlayer()
+						+ setUpAttacker()
 			};				
 	}
 
@@ -70,7 +71,11 @@ public class RunBanditsExperiment {
 	
 	private static String setUpPlayer() {
 		return "p1:br.unb.cic.comnet.bandits.agents.Player;";
-	}	
+	}
+	
+	private static String setUpAttacker() {
+		return "at1:br.unb.cic.comnet.bandits.agents.Attacker(4, 30, 25, C2, 10);";
+	}		
 
 	private static String setUpWitnesses(int numOfWitnesses) {
 		StringBuilder witnesses = new StringBuilder();

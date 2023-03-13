@@ -1,9 +1,12 @@
 package br.unb.cic.comnet.bandits.agents;
 
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import com.google.gson.reflect.TypeToken;
 
 import br.unb.cic.comnet.bandits.arms.BanditArm;
 import br.unb.cic.comnet.bandits.environment.Environment;
@@ -18,7 +21,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.util.Logger;
 
-public class Witness extends Agent {
+public class EpsilonCorruptionWitness extends Agent {
 	private static final long serialVersionUID = 1L;
 	
 	Logger logger = Logger.getJADELogger(getClass().getName());	
@@ -26,17 +29,22 @@ public class Witness extends Agent {
 	private InfoRounds infoRounds;
 	private Random random;
 	
+	private Double epsilonCorruption = 0D;
+	private String armName;
+	
 	public Map<String, Double> getResumedRewards() {
 		return infoRounds.resumeRewards();
 	}
 	
-	public Witness() {
+	public EpsilonCorruptionWitness() {
 		this.infoRounds = new InfoRounds();
 		this.random = new SecureRandom();
 	}
 	
 	@Override
 	protected void setup() {
+		interpretParamenters();		
+		
 		addBehaviour(new TickerBehaviour(this, 100) {
 			private static final long serialVersionUID = 1L;
 			
@@ -57,7 +65,7 @@ public class Witness extends Agent {
 					ACLMessage msgSend = new ACLMessage(ACLMessage.CONFIRM);
 					msgSend.addReceiver(msg.getSender());
 					msgSend.setProtocol(MessageProtocols.Sending_Ratings.name());
-					msgSend.setContent(SerializationHelper.serialize(infoRounds.resumeRewards()));
+					msgSend.setContent(SerializationHelper.serialize(corruptRewards(infoRounds.resumeRewards())));
 					getAgent().send(msgSend);
 				} else {
 					block();
@@ -71,7 +79,46 @@ public class Witness extends Agent {
 			}			
 		});
 		
+		addBehaviour(new CyclicBehaviour(this) {
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public void action() {
+				ACLMessage msg = myAgent.receive(informEpsilonTemplate());
+				if (msg != null) {
+					Double newEpsilon = SerializationHelper.unserialize(msg.getContent(), new TypeToken<Double>() {});
+					epsilonCorruption = newEpsilon;
+					logger.log(Logger.INFO, "New epsilon informed: " + epsilonCorruption);
+				} else {
+					block();
+				}
+			}
+			
+			private MessageTemplate informEpsilonTemplate() {
+				return MessageTemplate.and(
+						MessageTemplate.MatchPerformative(ACLMessage.INFORM), 
+						MessageTemplate.MatchProtocol(MessageProtocols.Inform_New_Epsilon.name()));
+			}			
+		});			
+		
 		publishMe();
+	}
+	
+	private void interpretParamenters() {
+		if (getArguments() != null && getArguments().length > 0) {
+			this.armName = getArguments()[0].toString();
+		}
+	}
+	
+	private Map<String, Double> corruptRewards(Map<String, Double> rewards) {
+		Map<String, Double> corruptedRewards = new HashMap<String, Double>();
+		for(String name : rewards.keySet()) {
+			corruptedRewards.put(
+				name, 
+				rewards.get(name) + ((name.equals(armName) ? 1 : -1) * epsilonCorruption)
+			);
+		}
+		return corruptedRewards;
 	}
 	
 	@Override

@@ -25,5 +25,22 @@ public class FileUtils {
 			logger.log(Logger.WARNING, "Can not write out info!");			
 		}		
 		return false;
+	}
+	
+	public static boolean appendAttackerCost(String fileName, Long pulls, Double epsilon, Double accumulatedCost, Logger logger) {
+		String fullFileName = GeneralParameters.mountOutputFileName(fileName);
+		try (
+			 FileWriter fw = new FileWriter(fullFileName, true);
+			 BufferedWriter bw = new BufferedWriter(fw);
+			 PrintWriter pw = new PrintWriter(bw)
+		){
+			pw.println(String.format("%.4f;%.4f", epsilon, accumulatedCost) + ";" + pulls + ";" + LocalDateTime.now().toString());
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+			logger.log(Logger.WARNING, "Can not write out info!");			
+		}		
+		return false;
 	} 	
+	
 }

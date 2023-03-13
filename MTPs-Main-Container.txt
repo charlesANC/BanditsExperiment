@@ -1,1 +1,1 @@
-http://lenovo:7778/acc
+http://LAPTOP-KEOKKSD6:7778/acc
