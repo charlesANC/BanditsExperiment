@@ -129,6 +129,8 @@ public class Recommender extends Agent {
 			}			
 		});		
 		
+		/*
+		
 		addBehaviour(new TickerBehaviour(this, 300) {
 			private static final long serialVersionUID = 1L;
 
@@ -156,6 +158,8 @@ public class Recommender extends Agent {
 				logger.log(Logger.INFO, eval.toString());
 			}
 		});
+		
+		*/
 		
 		publishMe();
 	}

@@ -7,6 +7,7 @@ public class BanditArm {
 	private String name;
 	private NormalDistribution normal;
 	private Long pulls;
+	private Double accumulatedReward;
 	
 	public String getName() {
 		return name;
@@ -16,14 +17,21 @@ public class BanditArm {
 		return pulls;
 	}
 	
+	public Double getAverageReward() {
+		return pulls > 0 ? accumulatedReward / pulls : 0;
+	}
+	
 	public BanditArm(String name, double mean, double sd) {
 		this.name = name;
 		this.normal = new NormalDistribution(mean, sd);
 		this.pulls = 0L;
+		this.accumulatedReward = 0D;
 	}
 	
 	public double pull() {
 		pulls++;
-		return normal.sample();
+		Double sample = normal.sample();
+		accumulatedReward += sample;
+		return sample;
 	}
 }

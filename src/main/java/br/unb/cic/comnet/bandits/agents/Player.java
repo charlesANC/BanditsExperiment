@@ -67,6 +67,7 @@ public class Player extends Agent {
 					}	
 					
 					try {
+						sendInformation();
 						requestArmRecomendation();
 					} catch (FIPAException e) {
 						e.printStackTrace();
@@ -130,7 +131,18 @@ public class Player extends Agent {
 			msg.setContent(SerializationHelper.serialize(infoRounds));
 			this.send(msg);	
 		}
-	}	
+	}
+	
+	private void sendInformation() throws FIPAException {
+		Set<AID> loggers = LoggerServiceDescriptor.search(this);
+		loggers.forEach(x -> {
+			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+			msg.addReceiver(x);
+			msg.setProtocol(MessageProtocols.Inform_Accumm_Reward.name());
+			msg.setContent(SerializationHelper.serialize(infoRounds));
+			this.send(msg);
+		});
+	}
 	
 	private void addReward(String name, double reward) {
 		//logger.log(Logger.INFO, "Player got " + reward + " from the arm " + name + " at cycle " + infoRounds.getRound() + ".");

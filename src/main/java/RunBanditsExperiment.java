@@ -61,8 +61,14 @@ public class RunBanditsExperiment {
 						+ setUpRecommender(banditAlgorithm, useTrust)
 						+ setUpPlayer()
 						+ setUpAttacker()
+						+ setUpLogger(banditAlgorithm, useTrust)
 			};				
 	}
+	
+	private static String setUpLogger(String banditAlgorithm, String useTrust) {
+		String algorithm = banditAlgorithm != null ? "(" + banditAlgorithm + ", " + useTrust + ")" : "";
+		return "l1:br.unb.cic.comnet.bandits.agents.LoggerAgent" + algorithm + ";";
+	}	
 
 	private static String setUpRecommender(String banditAlgorithm, String useTrust) {
 		String algorithm = banditAlgorithm != null ? "(" + banditAlgorithm + ", " + useTrust + ")" : "";
@@ -74,7 +80,7 @@ public class RunBanditsExperiment {
 	}
 	
 	private static String setUpAttacker() {
-		return "at1:br.unb.cic.comnet.bandits.agents.Attacker(4, 30, 25, C2, 10);";
+		return "at1:br.unb.cic.comnet.bandits.agents.Attacker(4, 35, 20, C2, 10);";
 	}		
 
 	private static String setUpWitnesses(int numOfWitnesses) {

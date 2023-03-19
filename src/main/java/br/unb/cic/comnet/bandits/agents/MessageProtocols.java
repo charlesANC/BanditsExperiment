@@ -5,6 +5,8 @@ public enum MessageProtocols {
 	Request_Ratings, 
 	Sending_Ratings, 
 	Request_Arm_Recomendation, 
-	Arm_Recomendation;
+	Arm_Recomendation, 
+	Inform_Accumm_Reward, 
+	Inform_Accumm_Cost;
 
 }

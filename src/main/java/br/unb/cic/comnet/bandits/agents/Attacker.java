@@ -2,6 +2,7 @@ package br.unb.cic.comnet.bandits.agents;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import br.unb.cic.comnet.bandits.environment.Environment;
 import br.unb.cic.comnet.bandits.utils.FileUtils;
@@ -9,6 +10,7 @@ import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
+import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.util.Logger;
 import jade.wrapper.AgentController;
@@ -55,13 +57,18 @@ public class Attacker extends Agent {
 						);
 				
 				if (epsilonUpdateFactor != 0D) {
-					informCooptedNewEpsilon(
-						updateEpsilon(epsilonUpdateFactor)
-					);
+					updateEpsilon(epsilonUpdateFactor);
+					try {
+						informCooptedNewEpsilon();
+						informLoggers();						
+					} catch (FIPAException e) {
+						e.printStackTrace();
+						logger.log(Logger.SEVERE, "Could not get available loggers.");						
+					}
 				}
 				
 				updateCost();
-				writeData();
+				//writeData();
 			}
 		});		
 		
@@ -81,13 +88,24 @@ public class Attacker extends Agent {
 		}
 	}	
 	
-	private void informCooptedNewEpsilon(Double newEpsilon) {
+	private void informCooptedNewEpsilon() {
 		cooptedWitnesses.forEach(x -> {
 			ACLMessage msgSend = new ACLMessage(ACLMessage.INFORM);
 			msgSend.addReceiver(new AID(x, true));
 			msgSend.setProtocol(MessageProtocols.Inform_New_Epsilon.name());
-			msgSend.setContent(SerializationHelper.serialize(newEpsilon));
+			msgSend.setContent(SerializationHelper.serialize(errorEpsilon));
 			send(msgSend);			
+		});
+	}
+	
+	private void informLoggers() throws FIPAException {
+		Set<AID> loggers = LoggerServiceDescriptor.search(this);
+		loggers.forEach(x -> {
+			ACLMessage msgSend = new ACLMessage(ACLMessage.INFORM);
+			msgSend.addReceiver(x);
+			msgSend.setProtocol(MessageProtocols.Inform_Accumm_Cost.name());
+			msgSend.setContent(SerializationHelper.serialize(new AttackerInformation(errorEpsilon, cost)));
+			send(msgSend);						
 		});
 	}
 	
@@ -96,9 +114,9 @@ public class Attacker extends Agent {
 	}	
 	 
 	private Double updateEpsilon(Double updateFactor) {
-		errorEpsilon = Math.max(errorEpsilon + (updateFactor * ERROR_EPSILON_DELTA), 0D);
+		errorEpsilon = Math.min(Math.max(errorEpsilon + (updateFactor * ERROR_EPSILON_DELTA), 0D), 1D);
 		
-		logger.log(Logger.INFO, ">>> O novo epsilon é " + errorEpsilon);		
+		logger.log(Logger.INFO, ">>> New epsilon is " + errorEpsilon);		
 		
 		return errorEpsilon;
 	}
@@ -107,7 +125,7 @@ public class Attacker extends Agent {
 		Long delta = pullsObserved - lastPullsObserved;
 		lastPullsObserved = pullsObserved;
 		
-		logger.log(Logger.INFO, "O braço foi puxado " + delta + " vezes durante o período.");
+		logger.log(Logger.INFO, "Target arm was pulled " + delta + " times during period.");
 		
 		return delta;
 	}
