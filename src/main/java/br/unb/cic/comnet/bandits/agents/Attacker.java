@@ -3,9 +3,10 @@ package br.unb.cic.comnet.bandits.agents;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import br.unb.cic.comnet.bandits.arms.BanditArm;
 import br.unb.cic.comnet.bandits.environment.Environment;
-import br.unb.cic.comnet.bandits.utils.FileUtils;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.core.AID;
 import jade.core.Agent;
@@ -19,25 +20,23 @@ import jade.wrapper.StaleProxyException;
 public class Attacker extends Agent {
 	private static final long serialVersionUID = 1L;
 	
-	private static final Double ERROR_EPSILON_DELTA = 0.50D;
+	private static final Double ERROR_EPSILON_DELTA = 0.050D;
 	
 	private Logger logger = Logger.getJADELogger(getClass().getName());		
 	
-	private Long topTrigger;
-	private Long bottonTrigger;
+	private Double topTrigger;
+	private Double bottonTrigger;
 	private Integer goalArmIndex;
 	private String armName;
 	
 	private List<String> cooptedWitnesses;
 	
-	private Long lastPullsObserved;
 	private Double errorEpsilon;
 	private Double cost;
 	
 	public Attacker() {
 		this.errorEpsilon = 0D;
 		this.cost = 0D;
-		this.lastPullsObserved = 0L;
 	}
 	
 	@Override
@@ -49,13 +48,7 @@ public class Attacker extends Agent {
 			
 			@Override
 			protected void onTick() {
-				Double epsilonUpdateFactor = 
-						calculateUpdateFactor(
-							updatePullsObservation(
-								Environment.getArms().get(goalArmIndex).getPulls()
-							)
-						);
-				
+				Double epsilonUpdateFactor = calculateUpdateFactor(calculateTargetArmRatio(Environment.getArms()));
 				if (epsilonUpdateFactor != 0D) {
 					updateEpsilon(epsilonUpdateFactor);
 					try {
@@ -68,7 +61,6 @@ public class Attacker extends Agent {
 				}
 				
 				updateCost();
-				//writeData();
 			}
 		});		
 		
@@ -77,8 +69,8 @@ public class Attacker extends Agent {
 	private void interpretParameters() {
 		if (getArguments() != null && getArguments().length >= 4) {
 			this.goalArmIndex = Integer.valueOf(getArguments()[0].toString());
-			this.topTrigger = Long.valueOf(getArguments()[1].toString());
-			this.bottonTrigger = Long.valueOf(getArguments()[2].toString());
+			this.topTrigger = Double.valueOf(getArguments()[1].toString());
+			this.bottonTrigger = Double.valueOf(getArguments()[2].toString());
 			
 			this.armName = getArguments()[3].toString();			
 			
@@ -113,7 +105,7 @@ public class Attacker extends Agent {
 		cost += errorEpsilon;
 	}	
 	 
-	private Double updateEpsilon(Double updateFactor) {
+	private synchronized Double updateEpsilon(Double updateFactor) {
 		errorEpsilon = Math.min(Math.max(errorEpsilon + (updateFactor * ERROR_EPSILON_DELTA), 0D), 1D);
 		
 		logger.log(Logger.INFO, ">>> New epsilon is " + errorEpsilon);		
@@ -121,22 +113,22 @@ public class Attacker extends Agent {
 		return errorEpsilon;
 	}
 	
-	private Long updatePullsObservation(Long pullsObserved) {
-		Long delta = pullsObserved - lastPullsObserved;
-		lastPullsObserved = pullsObserved;
+	private Double calculateUpdateFactor(Double ratio) {
+		logger.log(Logger.INFO, "Ratio: " + ratio);
 		
-		logger.log(Logger.INFO, "Target arm was pulled " + delta + " times during period.");
-		
-		return delta;
-	}
-	
-	private Double calculateUpdateFactor(Long delta) {
-		logger.log(Logger.INFO, "Delta: " + delta);
-		
-		if (delta > topTrigger) return -1.0;
-		if (delta < bottonTrigger) return 1.0;
+		if (ratio > topTrigger) return -1.0;
+		if (ratio < bottonTrigger) return 1.0;
 		return 0D;
 	}
+	
+	private Double calculateTargetArmRatio(List<BanditArm> arms) {
+		Long sum = arms.stream().collect(Collectors.summarizingLong(BanditArm::getPulls)).getSum();
+		Long targetArm = arms.get(goalArmIndex).getPulls();
+		
+		if (sum == 0) return 0D;
+		
+		return Double.valueOf(targetArm) / sum;
+	}	
 	
 	private List<String> createCooptedWitnesses(Integer numWitnesses) {
 		List<String> cooptedWitnesses = new ArrayList<String>(numWitnesses);
@@ -164,9 +156,5 @@ public class Attacker extends Agent {
 			logger.log(Logger.SEVERE, "Error on creating broker viewer! " + e.getMessage());
 			return null;
 		}
-	}
-	
-	private void writeData() {
-		FileUtils.appendAttackerCost("attacker.csv", lastPullsObserved, errorEpsilon, cost, logger);
 	}
 }

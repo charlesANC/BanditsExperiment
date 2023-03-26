@@ -13,11 +13,11 @@ public class BanditArm {
 		return name;
 	}
 	
-	public Long getPulls() {
+	public synchronized Long getPulls() {
 		return pulls;
 	}
 	
-	public Double getAverageReward() {
+	public synchronized Double getAverageReward() {
 		return pulls > 0 ? accumulatedReward / pulls : 0;
 	}
 	
@@ -28,10 +28,14 @@ public class BanditArm {
 		this.accumulatedReward = 0D;
 	}
 	
-	public double pull() {
-		pulls++;
+	public synchronized double pull() {
 		Double sample = normal.sample();
 		accumulatedReward += sample;
 		return sample;
+	}
+	
+	public synchronized double playersPull() {
+		pulls++;
+		return pull();
 	}
 }

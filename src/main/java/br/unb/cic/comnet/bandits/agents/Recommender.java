@@ -4,16 +4,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.reflect.TypeToken;
 
-import br.unb.cic.comnet.bandits.agents.trm.FIRETranscoderEvaluator;
+import br.unb.cic.comnet.bandits.agents.trm.ArmsEvaluator;
+import br.unb.cic.comnet.bandits.agents.trm.ArmsEvaluatorFactory;
 import br.unb.cic.comnet.bandits.algorithms.BanditAlgorithm;
 import br.unb.cic.comnet.bandits.algorithms.BanditAlgorithmFactory;
-import br.unb.cic.comnet.bandits.utils.FileUtils;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.core.AID;
 import jade.core.Agent;
@@ -33,19 +33,7 @@ public class Recommender extends Agent {
 	
 	private Map<String, ArmInfo> armsInfo;
 	private BanditAlgorithm recommendAlgorithm;
-	private String fileName;
-	private boolean useTrust = false;
-	
-	public String getFileName() {
-		if (fileName == null) {
-			fileName = "ratings_" 
-				+ recommendAlgorithm.getName() + "_" 
-				+ (useTrust?"T":"A") 
-				+ System.currentTimeMillis() 
-				+ "_.txt";
-		}
-		return fileName;
-	}
+	private ArmsEvaluator evaluator;
 	
 	public Recommender() {
 		this.armsInfo = new ConcurrentHashMap<String, ArmInfo>();
@@ -70,7 +58,7 @@ public class Recommender extends Agent {
 					}
 				} catch (FIPAException e) {
 					e.printStackTrace();
-					logger.log(Logger.SEVERE, "I cannot lsit the witness. " + getName());					
+					logger.log(Logger.SEVERE, "I cannot list the witness. " + getName());					
 				}
 			}
 		});
@@ -106,7 +94,7 @@ public class Recommender extends Agent {
 			public void action() {
 				ACLMessage msg = myAgent.receive(template());
 				if (msg != null) {
-					new FIRETranscoderEvaluator().evaluateTranscoders(armsInfo.values(), "p1");					
+					evaluator.evaluateArms(armsInfo.values());					
 					
 					InfoRounds infoRounds = SerializationHelper
 							.unserialize(msg.getContent(), 
@@ -166,11 +154,31 @@ public class Recommender extends Agent {
 	
 	private void interpretParameters() {
 		String banditAlgorithmName = "simple_averaging";
+		String evaluatorName = "simplemean";
+		List<String> parameters = new ArrayList<String>();
 		if (getArguments() != null && getArguments().length != 0) {
 			banditAlgorithmName = getArguments()[0].toString();
-			useTrust = getArguments()[1].toString().equals("T");
+			evaluatorName = getArguments()[1].toString();
+			parameters = catchParameters(getArguments(), 2);
 		}
+		
 		this.recommendAlgorithm = BanditAlgorithmFactory.create(banditAlgorithmName);
+		
+		Optional<ArmsEvaluator> opEvaluator = ArmsEvaluatorFactory.createEvaluator(evaluatorName, parameters);
+		if (opEvaluator.isEmpty()) {
+			logger.info("Cannot instantiate evaluator. Reducing to simplemean...");
+			this.evaluator = ArmsEvaluatorFactory.createEvaluator("simplemean", new ArrayList<String>()).get();
+		} else {
+			this.evaluator = opEvaluator.get();
+		}
+	}
+	
+	private List<String> catchParameters(Object[] arguments, int start) {
+		List<String> parameters = new ArrayList<String>();
+		for(int i = start; i < arguments.length; i++) {
+			parameters.add(arguments[i].toString());
+		}
+		return parameters;
 	}
 
 	@Override
@@ -195,11 +203,7 @@ public class Recommender extends Agent {
 	private Map<String, Double> resumeRating() {
 		Map<String, Double> resumed = new HashMap<String, Double>();
 		for(String arm : armsInfo.keySet()) {
-			if (useTrust) {
-				resumed.put(arm, armsInfo.get(arm).getTrustworth());				
-			} else {
-				resumed.put(arm, armsInfo.get(arm).meanEvaluation());				
-			}
+			resumed.put(arm, armsInfo.get(arm).getTrustworth());				
 		}	
 		return resumed;
 	}

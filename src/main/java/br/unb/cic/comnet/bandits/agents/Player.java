@@ -59,7 +59,7 @@ public class Player extends Agent {
 					infoRounds.incrementRound();
 					
 					String arm = msg.getContent();
-					Environment.getArm(arm).ifPresent(x -> addReward(arm, x.pull()));
+					Environment.getArm(arm).ifPresent(x -> addReward(arm, x.playersPull()));
 					
 					if (infoRounds.hasReachedEnd()) {
 						logger.log(Logger.INFO, "Completed! I gonna die. " + getAgent().getLocalName());

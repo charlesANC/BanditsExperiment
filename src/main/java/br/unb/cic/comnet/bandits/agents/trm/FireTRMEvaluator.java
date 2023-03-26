@@ -16,12 +16,42 @@ import br.com.tm.repfogagent.trm.components.WitnessReputationComponent;
 import br.unb.cic.comnet.bandits.agents.ArmInfo;
 import jade.util.Logger;
 
-public class FIRETranscoderEvaluator {
+public class FireTRMEvaluator implements ArmsEvaluator {
 	
-	Logger logger = Logger.getJADELogger(getClass().getName());	
+	Logger logger = Logger.getJADELogger(getClass().getName());
 	
-	public void evaluateArms(Collection<ArmInfo> armsInfo, String accreditedArm) {
+	private String accreditedArm;
+	
+	private Double witnessCredibilityLambda;
+	private Double witnessCredibilityCoeficient;
+	private Double witnessCredibilityInnacuracyTolerance;
+	
+	private Double directInteractionLambda;
+	private Double directInteractionCoeficient;
+	
+	public static FireTRMEvaluator createDefault(String accreditedArm) {
+		return new FireTRMEvaluator(accreditedArm, 0D, 0.4D, 0.8D, 0D, 0.8D);
+	}
+	
+	public FireTRMEvaluator(
+		String accreditedArm, 
+		Double witnessCredibilityLambda, 
+		Double witnessCredibilityCoeficient,
+		Double witnessCredibilityInnacuracyTolerance, 
+		Double directInteractionLambda,
+		Double directInteractionCoeficient
+	) {
+		super();
+		this.accreditedArm = accreditedArm;
+		this.witnessCredibilityLambda = witnessCredibilityLambda;
+		this.witnessCredibilityCoeficient = witnessCredibilityCoeficient;
+		this.witnessCredibilityInnacuracyTolerance = witnessCredibilityInnacuracyTolerance;
+		this.directInteractionLambda = directInteractionLambda;
+		this.directInteractionCoeficient = directInteractionCoeficient;
+	}
 
+	@Override
+	public synchronized Collection<ArmInfo> evaluateArms(Collection<ArmInfo> armsInfo) {
 		StringBuilder str = new StringBuilder("\r\n---\r\n");
 		
 		for(ArmInfo armInfo : armsInfo) {
@@ -34,7 +64,15 @@ public class FIRETranscoderEvaluator {
 				splitRatings(armInfo.getEvaluations(), accreditedArm, local, supportingRatings, ratingsPerNode);
 				
 				if (!local.isEmpty() && !supportingRatings.isEmpty()) {
-					WitnessReputationComponent witnessComponent = new WitnessReputationComponent(0, 0.4, 0.8, ratingsPerNode, local);
+					
+					WitnessReputationComponent witnessComponent = 
+							new WitnessReputationComponent(
+								witnessCredibilityLambda, 
+								witnessCredibilityCoeficient, 
+								witnessCredibilityInnacuracyTolerance, 
+								ratingsPerNode, 
+								local
+							);
 					
 					double witnessValue = witnessComponent.calculate(supportingRatings, supportingRatings.size());
 					double reliabilityWR = witnessComponent.reliability(supportingRatings);
@@ -42,7 +80,11 @@ public class FIRETranscoderEvaluator {
 					witnessComponent.setCalculatedValue(witnessValue);
 					witnessComponent.setCalculatedReliability(reliabilityWR);
 					
-					InteractionTrustComponent directComponent = new InteractionTrustComponent(0,  0.8);				
+					InteractionTrustComponent directComponent = 
+							new InteractionTrustComponent(
+								directInteractionLambda,  
+								directInteractionCoeficient
+							);				
 					
 					if (!local.isEmpty()) {
 						double interactionTrustValue = directComponent.calculate(local, local.size());
@@ -69,6 +111,8 @@ public class FIRETranscoderEvaluator {
 		
 		str.append("\r\n---\r\n");
 		logger.log(Logger.INFO, str.toString());					
+		
+		return armsInfo;
 	}
 	
 	private void splitRatings(
@@ -116,5 +160,6 @@ public class FIRETranscoderEvaluator {
 		}
 		ratingsPerNode.get(key).add(indirectRating);
 		supportingRatings.add(indirectRating);
-	}	
+	}		
+
 }
