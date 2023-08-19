@@ -21,7 +21,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.util.Logger;
 
-public class EpsilonCorruptionWitness extends Agent {
+public class JunCorruptedWitness extends Agent {
 	private static final long serialVersionUID = 1L;
 	
 	Logger logger = Logger.getJADELogger(getClass().getName());	
@@ -29,22 +29,19 @@ public class EpsilonCorruptionWitness extends Agent {
 	private InfoRounds infoRounds;
 	private Random random;
 	
-	private Double epsilonCorruption = 0D;
-	private String armName;
+	private Map<String, Double> corruption;
 	
 	public Map<String, Double> getResumedRewards() {
 		return infoRounds.resumeRewards();
 	}
 	
-	public EpsilonCorruptionWitness() {
+	public JunCorruptedWitness() {
 		this.infoRounds = new InfoRounds();
 		this.random = new SecureRandom();
 	}
 	
 	@Override
 	protected void setup() {
-		interpretParamenters();		
-		
 		addBehaviour(new TickerBehaviour(this, 100) {
 			private static final long serialVersionUID = 1L;
 			
@@ -86,9 +83,8 @@ public class EpsilonCorruptionWitness extends Agent {
 			public void action() {
 				ACLMessage msg = myAgent.receive(informEpsilonTemplate());
 				if (msg != null) {
-					Double newEpsilon = SerializationHelper.unserialize(msg.getContent(), new TypeToken<Double>() {});
-					epsilonCorruption = newEpsilon;
-					logger.log(Logger.INFO, "New epsilon informed: " + epsilonCorruption);
+					corruption = SerializationHelper.unserialize(msg.getContent(), new TypeToken<Map<String, Double>>() {});
+					logger.log(Logger.INFO, "New corruption informed: " + corruption);
 				} else {
 					block();
 				}
@@ -99,15 +95,15 @@ public class EpsilonCorruptionWitness extends Agent {
 						MessageTemplate.MatchPerformative(ACLMessage.INFORM), 
 						MessageTemplate.MatchProtocol(MessageProtocols.Inform_New_Corruption.name()));
 			}			
-		});			
+		});		
 		
 		publishMe();
 	}
 	
-	private void interpretParamenters() {
-		if (getArguments() != null && getArguments().length > 0) {
-			this.armName = getArguments()[0].toString();
-		}
+	@Override
+	public void takeDown() {
+		unpublishMe();
+		logger.log(Logger.INFO, "My accumulated reward was " + infoRounds.getAccumulatedReward());
 	}
 	
 	private Map<String, Double> corruptRewards(Map<String, Double> rewards) {
@@ -115,17 +111,18 @@ public class EpsilonCorruptionWitness extends Agent {
 		for(String name : rewards.keySet()) {
 			corruptedRewards.put(
 				name, 
-				rewards.get(name) + ((name.equals(armName) ? 1 : -1) * epsilonCorruption)
+				(rewards.get(name) - corruptionByArm(name))
 			);
 		}
 		return corruptedRewards;
-	}
-	
-	@Override
-	public void takeDown() {
-		unpublishMe();
-		logger.log(Logger.INFO, "My accumulated reward was " + infoRounds.getAccumulatedReward());
 	}	
+	
+	private Double corruptionByArm(String arm) {
+		if (corruption == null || !corruption.containsKey(arm)) {
+			return 0D;
+		}
+		return corruption.get(arm);
+	}
 	
 	private void addRating(String name, double reward) {
 		infoRounds.addReward(name, reward);
@@ -142,7 +139,7 @@ public class EpsilonCorruptionWitness extends Agent {
 			e.printStackTrace();
 			logger.log(Logger.SEVERE, "I cannot unpublish myself! " + getName());
 		}
-	}
+	}	
 	
 	private void publishMe() {
 		DFAgentDescription desc = new DFAgentDescription();
@@ -156,4 +153,5 @@ public class EpsilonCorruptionWitness extends Agent {
 			doDelete();
 		}
 	}	
+
 }

@@ -1,6 +1,5 @@
 package br.unb.cic.comnet.bandits.agents.trm;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,11 +23,6 @@ public class SimpleMeanEvaluator implements ArmsEvaluator {
 	}	
 	
 	List<Rating> collectAllRatings(ArmInfo armInfo) {
-		List<Rating> ratings = new ArrayList<Rating>();
-		for(String player : armInfo.getEvaluations().keySet()) {
-			ratings.addAll(armInfo.getEvaluations().get(player));
-		}
-		return ratings;
+		return armInfo.allRatings();
 	}	
-
 }

@@ -1,7 +1,9 @@
 package br.unb.cic.comnet.bandits.agents;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,6 +60,14 @@ public class ArmInfo {
 		}
 		return sum / count;
 	}
+	
+	public List<Rating> allRatings() {
+		List<Rating> ratings = new ArrayList<Rating>();
+		for(String player : getEvaluations().keySet()) {
+			ratings.addAll(getEvaluations().get(player));
+		}
+		return ratings;
+	}	
 	
 	public void addEvaluation(String player, double evaluation) {
 		if (!evaluations.containsKey(player)) {

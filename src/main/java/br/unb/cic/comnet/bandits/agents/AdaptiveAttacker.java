@@ -17,7 +17,7 @@ import jade.util.Logger;
 import jade.wrapper.AgentController;
 import jade.wrapper.StaleProxyException;
 
-public class Attacker extends Agent {
+public class AdaptiveAttacker extends Agent {
 	private static final long serialVersionUID = 1L;
 	
 	private static final Double ERROR_EPSILON_DELTA = 0.050D;
@@ -34,7 +34,7 @@ public class Attacker extends Agent {
 	private Double errorEpsilon;
 	private Double cost;
 	
-	public Attacker() {
+	public AdaptiveAttacker() {
 		this.errorEpsilon = 0D;
 		this.cost = 0D;
 	}
@@ -84,7 +84,7 @@ public class Attacker extends Agent {
 		cooptedWitnesses.forEach(x -> {
 			ACLMessage msgSend = new ACLMessage(ACLMessage.INFORM);
 			msgSend.addReceiver(new AID(x, true));
-			msgSend.setProtocol(MessageProtocols.Inform_New_Epsilon.name());
+			msgSend.setProtocol(MessageProtocols.Inform_New_Corruption.name());
 			msgSend.setContent(SerializationHelper.serialize(errorEpsilon));
 			send(msgSend);			
 		});

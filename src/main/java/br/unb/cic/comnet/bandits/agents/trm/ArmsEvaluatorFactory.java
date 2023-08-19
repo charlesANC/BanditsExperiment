@@ -23,6 +23,13 @@ public class ArmsEvaluatorFactory {
 			Double alpha = Double.valueOf(parameters.get(0));
 			return Optional.of(new ShortMeanEvaluator(alpha));
 		}
+		if (evaluator.equals("exp3")) {
+			if (parameters.isEmpty()) {
+				throw new IllegalArgumentException("Required gamma parameter not found.");
+			}
+			Double gamma = Double.valueOf(parameters.get(0));
+			return Optional.of(new Exp3Evaluator(gamma));
+		}
 		if (evaluator.equals("fire")) {
 			if (parameters.size() < 6) {
 				throw new IllegalArgumentException("Not enough arguments to create a FIRE TRM evaluator.");				

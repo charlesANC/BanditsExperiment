@@ -34,6 +34,10 @@ public class BanditAlgorithmFactory {
 			return new UCB1();
 		}
 		
+		if (name.equals("exp3")) {
+			return new Exp3SelectionAlgorithm();
+		}
+		
 		if (name.equals("only_exploiting")) {
 			return new OnlyExploiting();
 		}		
