@@ -7,7 +7,6 @@ import br.unb.cic.comnet.bandits.utils.FileUtils;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -25,7 +24,6 @@ public class LoggerAgent extends Agent {
 	
 	private Long playerRound;
 	private Double cummulativeReward;
-	private Double epsilonCorruption;
 	private Double corruptionCost;
 	
 	private String getFileName() {
@@ -36,7 +34,6 @@ public class LoggerAgent extends Agent {
 		this.fileName = "execution_X_X_X.txt";
 		this.playerRound = 0L;
 		this.cummulativeReward = 0D;
-		this.epsilonCorruption = 0D;
 		this.corruptionCost = 0D;
 	}
 	
@@ -75,9 +72,8 @@ public class LoggerAgent extends Agent {
 			public void action() {
 				ACLMessage msg = myAgent.receive(template());
 				if (msg != null) {
-					AttackerInformation info = SerializationHelper.unserialize(msg.getContent(), new TypeToken<AttackerInformation>() {});
-					epsilonCorruption = info.getEpsilonCorruption();
-					corruptionCost = info.getCorruptionCost();
+					Double corruption = SerializationHelper.unserialize(msg.getContent(), new TypeToken<Double>() {});
+					corruptionCost += corruption;
 				} else {
 					block();
 				}
@@ -112,10 +108,9 @@ public class LoggerAgent extends Agent {
 	}
 	
 	private String resumeInformation() {
-		return String.format("%d;%.4f;%.4f;%.4f;%d;%.4f;%d;%.4f;%d;%.4f;%d;%.4f;%d;%.4f;", 
+		return String.format("%d;%.4f;%.4f;%d;%.4f;%d;%.4f;%d;%.4f;%d;%.4f;%d;%.4f;", 
 			playerRound, 
 			cummulativeReward, 
-			epsilonCorruption, 
 			corruptionCost,
 			Environment.getArm("A1").get().getPulls(),
 			Environment.getArm("A1").get().getAverageReward(),			

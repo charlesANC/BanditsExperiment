@@ -53,29 +53,12 @@ public class JunEpsilonGreedyAttacker extends Agent {
 			protected void onTick() {
 				boolean hasChanges = updateCorruption(Environment.getArmsMap());
 				if (hasChanges) {
-					try {
-						informCooptedNewCorruption();
-						informLoggers();						
-					} catch (FIPAException e) {
-						e.printStackTrace();
-						logger.log(Logger.SEVERE, "Could not get available loggers.");						
-					}
+					informCooptedNewCorruption();
 				}
 				updateCost();
 			}
 		});	
 		
-	}
-	
-	public void informLoggers() throws FIPAException {
-		Set<AID> loggers = LoggerServiceDescriptor.search(this);
-		loggers.forEach(x -> {
-			ACLMessage msgSend = new ACLMessage(ACLMessage.INFORM);
-			msgSend.addReceiver(x);
-			msgSend.setProtocol(MessageProtocols.Inform_Accumm_Cost.name());
-			msgSend.setContent(SerializationHelper.serialize(new AttackerInformation(avgAttack, cost)));
-			send(msgSend);						
-		});
 	}
 	
 	public void updateCost() {

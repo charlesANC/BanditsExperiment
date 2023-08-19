@@ -5,12 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import com.google.gson.reflect.TypeToken;
 
 import br.unb.cic.comnet.bandits.arms.BanditArm;
 import br.unb.cic.comnet.bandits.environment.Environment;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.TickerBehaviour;
@@ -62,16 +64,18 @@ public class EpsilonCorruptionWitness extends Agent {
 			public void action() {
 				ACLMessage msg = myAgent.receive(template());
 				if (msg != null) {
-					ACLMessage msgSend = new ACLMessage(ACLMessage.CONFIRM);
-					msgSend.addReceiver(msg.getSender());
-					msgSend.setProtocol(MessageProtocols.Sending_Ratings.name());
-					msgSend.setContent(SerializationHelper.serialize(corruptRewards(infoRounds.resumeRewards())));
-					getAgent().send(msgSend);
+					try {
+						sendCorruptedRewards(msg);
+						informLoggers();						
+					} catch (FIPAException fe) {
+						fe.printStackTrace();
+						logger.log(Logger.SEVERE, "Could not found available loggers.");						
+					}
 				} else {
 					block();
 				}
 			}
-			
+
 			private MessageTemplate template() {
 				return MessageTemplate.and(
 						MessageTemplate.MatchPerformative(ACLMessage.REQUEST), 
@@ -103,6 +107,29 @@ public class EpsilonCorruptionWitness extends Agent {
 		
 		publishMe();
 	}
+	
+	private void sendCorruptedRewards(ACLMessage msg) {
+		ACLMessage msgSend = new ACLMessage(ACLMessage.CONFIRM);
+		msgSend.addReceiver(msg.getSender());
+		msgSend.setProtocol(MessageProtocols.Sending_Ratings.name());
+		msgSend.setContent(SerializationHelper.serialize(corruptRewards(infoRounds.resumeRewards())));
+		send(msgSend);
+	}	
+	
+	private void informLoggers() throws FIPAException {
+		Set<AID> loggers = LoggerServiceDescriptor.search(this);
+		loggers.forEach(x -> {
+			ACLMessage msgSend = new ACLMessage(ACLMessage.INFORM);
+			msgSend.addReceiver(x);
+			msgSend.setProtocol(MessageProtocols.Inform_Accumm_Cost.name());
+			msgSend.setContent(SerializationHelper.serialize(resumeCorruption()));
+			send(msgSend);						
+		});
+	}	
+	
+	private Double resumeCorruption() {
+		return Environment.getArms().size() * epsilonCorruption;
+	}	
 	
 	private void interpretParamenters() {
 		if (getArguments() != null && getArguments().length > 0) {

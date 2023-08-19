@@ -5,12 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import com.google.gson.reflect.TypeToken;
 
 import br.unb.cic.comnet.bandits.arms.BanditArm;
 import br.unb.cic.comnet.bandits.environment.Environment;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.TickerBehaviour;
@@ -59,16 +61,18 @@ public class JunCorruptedWitness extends Agent {
 			public void action() {
 				ACLMessage msg = myAgent.receive(template());
 				if (msg != null) {
-					ACLMessage msgSend = new ACLMessage(ACLMessage.CONFIRM);
-					msgSend.addReceiver(msg.getSender());
-					msgSend.setProtocol(MessageProtocols.Sending_Ratings.name());
-					msgSend.setContent(SerializationHelper.serialize(corruptRewards(infoRounds.resumeRewards())));
-					getAgent().send(msgSend);
+					sendCorruptedRewards(msg);
+					try {
+						informLoggers();
+					} catch (FIPAException fe) {
+						fe.printStackTrace();
+						logger.log(Logger.SEVERE, "Could not get available loggers.");						
+					}
 				} else {
 					block();
 				}
 			}
-			
+
 			private MessageTemplate template() {
 				return MessageTemplate.and(
 						MessageTemplate.MatchPerformative(ACLMessage.REQUEST), 
@@ -104,6 +108,29 @@ public class JunCorruptedWitness extends Agent {
 	public void takeDown() {
 		unpublishMe();
 		logger.log(Logger.INFO, "My accumulated reward was " + infoRounds.getAccumulatedReward());
+	}
+	
+	private void sendCorruptedRewards(ACLMessage msg) {
+		ACLMessage msgSend = new ACLMessage(ACLMessage.CONFIRM);
+		msgSend.addReceiver(msg.getSender());
+		msgSend.setProtocol(MessageProtocols.Sending_Ratings.name());
+		msgSend.setContent(SerializationHelper.serialize(corruptRewards(infoRounds.resumeRewards())));
+		send(msgSend);
+	}	
+	
+	private void informLoggers() throws FIPAException {
+		Set<AID> loggers = LoggerServiceDescriptor.search(this);
+		loggers.forEach(x -> {
+			ACLMessage msgSend = new ACLMessage(ACLMessage.INFORM);
+			msgSend.addReceiver(x);
+			msgSend.setProtocol(MessageProtocols.Inform_Accumm_Cost.name());
+			msgSend.setContent(SerializationHelper.serialize(resumeCorruption()));
+			send(msgSend);						
+		});
+	}	
+	
+	private Double resumeCorruption() {
+		return corruption.values().stream().mapToDouble(x -> Math.abs(x)).sum();
 	}
 	
 	private Map<String, Double> corruptRewards(Map<String, Double> rewards) {

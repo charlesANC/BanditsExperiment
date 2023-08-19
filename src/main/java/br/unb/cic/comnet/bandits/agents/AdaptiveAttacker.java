@@ -2,7 +2,7 @@ package br.unb.cic.comnet.bandits.agents;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import br.unb.cic.comnet.bandits.arms.BanditArm;
@@ -11,7 +11,6 @@ import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
-import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.util.Logger;
 import jade.wrapper.AgentController;
@@ -26,8 +25,7 @@ public class AdaptiveAttacker extends Agent {
 	
 	private Double topTrigger;
 	private Double bottonTrigger;
-	private Integer goalArmIndex;
-	private String armName;
+	private String targetArm = "";
 	
 	private List<String> cooptedWitnesses;
 	
@@ -48,18 +46,11 @@ public class AdaptiveAttacker extends Agent {
 			
 			@Override
 			protected void onTick() {
-				Double epsilonUpdateFactor = calculateUpdateFactor(calculateTargetArmRatio(Environment.getArms()));
+				Double epsilonUpdateFactor = calculateUpdateFactor(calculateTargetArmRatio(Environment.getArmsMap()));
 				if (epsilonUpdateFactor != 0D) {
 					updateEpsilon(epsilonUpdateFactor);
-					try {
-						informCooptedNewEpsilon();
-						informLoggers();						
-					} catch (FIPAException e) {
-						e.printStackTrace();
-						logger.log(Logger.SEVERE, "Could not get available loggers.");						
-					}
+					informCooptedNewEpsilon();
 				}
-				
 				updateCost();
 			}
 		});		
@@ -68,13 +59,10 @@ public class AdaptiveAttacker extends Agent {
 	
 	private void interpretParameters() {
 		if (getArguments() != null && getArguments().length >= 4) {
-			this.goalArmIndex = Integer.valueOf(getArguments()[0].toString());
+			this.targetArm = getArguments()[0].toString();
 			this.topTrigger = Double.valueOf(getArguments()[1].toString());
 			this.bottonTrigger = Double.valueOf(getArguments()[2].toString());
-			
-			this.armName = getArguments()[3].toString();			
-			
-			this.cooptedWitnesses = createCooptedWitnesses(Integer.valueOf(getArguments()[4].toString()));
+			this.cooptedWitnesses = createCooptedWitnesses(Integer.valueOf(getArguments()[3].toString()));
 		} else {
 			logger.log(Logger.SEVERE, "It was not possible to interpret the parameters");
 		}
@@ -87,17 +75,6 @@ public class AdaptiveAttacker extends Agent {
 			msgSend.setProtocol(MessageProtocols.Inform_New_Corruption.name());
 			msgSend.setContent(SerializationHelper.serialize(errorEpsilon));
 			send(msgSend);			
-		});
-	}
-	
-	private void informLoggers() throws FIPAException {
-		Set<AID> loggers = LoggerServiceDescriptor.search(this);
-		loggers.forEach(x -> {
-			ACLMessage msgSend = new ACLMessage(ACLMessage.INFORM);
-			msgSend.addReceiver(x);
-			msgSend.setProtocol(MessageProtocols.Inform_Accumm_Cost.name());
-			msgSend.setContent(SerializationHelper.serialize(new AttackerInformation(errorEpsilon, cost)));
-			send(msgSend);						
 		});
 	}
 	
@@ -121,13 +98,13 @@ public class AdaptiveAttacker extends Agent {
 		return 0D;
 	}
 	
-	private Double calculateTargetArmRatio(List<BanditArm> arms) {
-		Long sum = arms.stream().collect(Collectors.summarizingLong(BanditArm::getPulls)).getSum();
-		Long targetArm = arms.get(goalArmIndex).getPulls();
+	private Double calculateTargetArmRatio(Map<String, BanditArm> arms) {
+		Long sum = arms.values().stream().collect(Collectors.summarizingLong(BanditArm::getPulls)).getSum();
+		Long targetArmPulls = arms.get(targetArm).getPulls();
 		
 		if (sum == 0) return 0D;
 		
-		return Double.valueOf(targetArm) / sum;
+		return Double.valueOf(targetArmPulls) / sum;
 	}	
 	
 	private List<String> createCooptedWitnesses(Integer numWitnesses) {
@@ -145,7 +122,7 @@ public class AdaptiveAttacker extends Agent {
 				.createNewAgent(
 					"cw" + index, 
 					EpsilonCorruptionWitness.class.getName(), 
-					new String[] {armName}
+					new String[] {targetArm}
 				);
 			
 			witness.start();
