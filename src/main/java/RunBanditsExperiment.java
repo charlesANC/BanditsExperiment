@@ -150,8 +150,8 @@ public class RunBanditsExperiment {
 			return "a1:br.unb.cic.comnet.bandits.agents.AdaptiveAttacker(C2, 0.60, 0.40, " + cooptedWitnesses + ");";
 		} else if (attackerClass.equals("JG")) {
 			return "a1:br.unb.cic.comnet.bandits.agents.JunEpsilonGreedyAttacker(C2, 0.025, 0.001, " + cooptedWitnesses + ");";
-		} else if (attackerClass.equals("JUNUCB")) {
-			//return ""; TODO: write Jun UCB attacker!
+		} else if (attackerClass.equals("JUCB")) {
+			return "a1:br.unb.cic.comnet.bandits.agents.JunUCBAttacker(C2, 0.025, 0.001, " + cooptedWitnesses + ", 0.10);";
 		}
 		
 		throw new RuntimeException("Unknown attacker class");

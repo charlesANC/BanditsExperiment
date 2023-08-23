@@ -32,23 +32,24 @@ public class RegretWitnessReputation {
 	}
 	
 	public Double calculateReputation(String agentB, String subject, Collection<Intuition> intuitions, Long t) {
-		Collection<Intuition> witnessesIntuitions = filterWitnessesIntuitions(agentB, subject, intuitions, t);
+		Collection<Intuition> witnessesIntuitions = filterWitnessesIntuitions(agentB, subject, intuitions);
 		Set<String> witnesses = collectWitnesses(witnessesIntuitions);
 		
 		Map<String, Double> witnessTrustValues = calculateWitnessTrustValues(witnesses, agentB, subject, intuitions, t);
 		Double witnessTrustSum = witnessTrustValues.values().stream().mapToDouble(w -> w).sum();
 		
 		Double reputation = 0.0;
-		for(Intuition witnessIntuition : witnessesIntuitions) {
-			Double witnessTrust = witnessTrustValues.get(witnessIntuition.getAgentA());			
-			reputation += ( witnessTrust / witnessTrustSum ) * witnessIntuition.getRating();
+		for(String witness : witnesses) {
+			Double oneWitnessReputation = calculateWitnessSubjectiveReputation(witness, agentB, subject, witnessesIntuitions, t);
+			Double witnessTrust = witnessTrustValues.get(witness);			
+			reputation += ( witnessTrust / witnessTrustSum ) * oneWitnessReputation;			
 		}
 		
 		return reputation;
 	}
 	
 	public Double calculateReputationLiability(String agentB, String subject, Collection<Intuition> intuitions, Double subjectiveReputation, Long t) {
-		Collection<Intuition> witnessesIntuitions = filterWitnessesIntuitions(agentB, subject, intuitions, t);
+		Collection<Intuition> witnessesIntuitions = filterWitnessesIntuitions(agentB, subject, intuitions);
 		Set<String> witnesses = collectWitnesses(witnessesIntuitions);		
 		
 		Map<String, Double> witnessTrustValues = calculateWitnessTrustValues(witnesses, agentB, subject, intuitions, t);
@@ -67,8 +68,8 @@ public class RegretWitnessReputation {
 		return intuitions.stream().map(i -> i.getAgentA()).collect(Collectors.toSet());
 	}
 	
-	private Collection<Intuition> filterWitnessesIntuitions(String agentB, String subject, Collection<Intuition> intuitions, Long t) {
-		Collection<Intuition> witnessesIntuitions = new FilterAgentBSubjectTime(agentB, subject, t).filter(intuitions);
+	private Collection<Intuition> filterWitnessesIntuitions(String agentB, String subject, Collection<Intuition> intuitions) {
+		Collection<Intuition> witnessesIntuitions = new FilterAgentBSubject(agentB, subject).filter(intuitions);
 		Collection<Intuition> intuitionsSource = new FilterAgentA(source).filter(witnessesIntuitions);
 		witnessesIntuitions.removeAll(intuitionsSource);
 		
@@ -84,4 +85,14 @@ public class RegretWitnessReputation {
 		}
 		return witnessWeights;
 	}
+	
+	private Double calculateWitnessSubjectiveReputation(String witness, String agentB, String subject, Collection<Intuition> intuitions, Long t) {
+		RegretSubjectiveReputation reputationCalculator = new RegretSubjectiveReputation(witness, getItm(), getU()); 
+		Collection<Intuition> oneWitnessIntuitions = filterOneWitnessIntuitions(witness, agentB, subject, intuitions);
+		return reputationCalculator.calculateReputation(agentB, subject, oneWitnessIntuitions, t);
+	}
+	
+	private Collection<Intuition> filterOneWitnessIntuitions(String witness, String agentB, String subject, Collection<Intuition> intuitions) {
+		return new FilterAgentAtoAgentBSubject(witness, agentB, subject).filter(intuitions);
+	}	
 }

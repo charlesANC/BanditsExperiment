@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import br.unb.cic.comnet.bandits.arms.BanditArm;
@@ -13,7 +12,6 @@ import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
-import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.util.Logger;
 import jade.wrapper.AgentController;
@@ -72,7 +70,6 @@ public class JunEpsilonGreedyAttacker extends Agent {
 			this.delta = Double.valueOf(getArguments()[1].toString());
 			this.sigma = Double.valueOf(getArguments()[2].toString());			
 			this.cooptedWitnesses = createCooptedWitnesses(Integer.valueOf(getArguments()[3].toString()));
- 
 		} else {
 			logger.log(Logger.SEVERE, "It was not possible to interpret the parameters");
 		}
@@ -86,16 +83,25 @@ public class JunEpsilonGreedyAttacker extends Agent {
 		List<BanditArm> others = new ArrayList<>(arms.values());
 		others.remove(target);
 		
+		logger.log(Logger.INFO, "** Size of others: " + others.size());
+		
 		for(BanditArm arm : others) {
-			Double attack = calculateAttack(arm, target, sigma, delta, armsNumber);
-			if (!attack.equals(corruption.get(arm.getName()))) {
-				corruption.put(arm.getName(), attack);
+			Double attack = calculateAttack(arm, target, armsNumber);
+			if (putCorruption(arm.getName(), attack)) {
 				hasChanges = true;
 			}
 		}
 		
 		return hasChanges;
 	}
+	
+	protected boolean putCorruption(String armName, Double attack) {
+		if (!attack.equals(corruption.getOrDefault(armName, -1D))) {
+			corruption.put(armName, attack);
+			return true;
+		}
+		return false;
+	}	
 	
 	private List<String> createCooptedWitnesses(Integer numWitnesses) {
 		List<String> cooptedWitnesses = new ArrayList<String>(numWitnesses);
@@ -136,20 +142,18 @@ public class JunEpsilonGreedyAttacker extends Agent {
 		});
 	}	
 	
-	private Double calculateAttack(
+	protected Double calculateAttack(
 		BanditArm attackedArm,
 		BanditArm targetArm, 
-		Double sigma, 
-		Double delta, 
 		Integer armsNumber
 	) {
 		Double attack =  attackedArmAmount(attackedArm) 
-			- targetArmAmount(attackedArm, targetArm, sigma, delta, armsNumber);
+			- targetArmAmount(attackedArm, targetArm, armsNumber);
 		
 		return Math.max(attack, 0D);
 	}
 	
-	private Double attackedArmAmount(BanditArm attackedArm) {
+	protected Double attackedArmAmount(BanditArm attackedArm) {
 		Double attackedArmAverage = attackedArm.getAverageReward();
 		Long attackedArmPulls = attackedArm.getPulls();
 		
@@ -160,11 +164,9 @@ public class JunEpsilonGreedyAttacker extends Agent {
 		return attackedArmAverage * (attackedArmPulls + 1);
 	}
 	
-	private Double targetArmAmount(
+	protected Double targetArmAmount(
 		BanditArm attackedArm,
 		BanditArm targetArm, 
-		Double sigma, 
-		Double delta, 
 		Integer armsNumber
 	) {
 		Long attackedArmPulls = attackedArm.getPulls();

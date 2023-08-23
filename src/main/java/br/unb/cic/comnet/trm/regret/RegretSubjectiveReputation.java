@@ -29,7 +29,7 @@ public class RegretSubjectiveReputation extends RegretElementCalculator {
 		return super.calculateReputation(getAgentA(), agentB, subject, intuitions, t);
 	}
 	
-	public Double calculateReputatioLiability(String agentB, String subject, Collection<Intuition> intuitions, Double subjectiveReputation, Long t) {
+	public Double calculateReputationLiability(String agentB, String subject, Collection<Intuition> intuitions, Double subjectiveReputation, Long t) {
 		return super.calculateReputationLiability(getAgentA(), agentB, subject, intuitions, subjectiveReputation, t);
 	}
 }

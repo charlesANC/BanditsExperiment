@@ -36,6 +36,6 @@ public class UCB1 implements BanditAlgorithm {
 	}
 
 	private double calculateUpperBound(String arm, Double reward, long round) {
-		return reward + Math.sqrt(2 * Math.log(round / chosen.get(arm)));
+		return reward + Math.sqrt(2 * (Math.log(round) / chosen.get(arm)));
 	}
 }

@@ -40,6 +40,7 @@ public class JunCorruptedWitness extends Agent {
 	public JunCorruptedWitness() {
 		this.infoRounds = new InfoRounds();
 		this.random = new SecureRandom();
+		this.corruption = new HashMap<>();
 	}
 	
 	@Override

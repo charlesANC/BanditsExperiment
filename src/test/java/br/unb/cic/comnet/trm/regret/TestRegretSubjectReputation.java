@@ -19,8 +19,20 @@ public class TestRegretSubjectReputation {
 		Double rep = calc.calculateReputation("b", "reward", intuitions, t);
 		
 		Assertions.assertEquals(1.0, rep.doubleValue());
-		
 	}
+	
+	@Test
+	public void testOneIntuitionNotOne() {
+		RegretSubjectiveReputation calc = new RegretSubjectiveReputation("a", 100L, 0.5);
+		
+		List<Intuition> intuitions = new ArrayList<Intuition>();
+		intuitions.add(new Intuition("a", "b", "reward", 1L, 0.9, 1.0));
+		
+		Long t = 1L;
+		Double rep = calc.calculateReputation("b", "reward", intuitions, t);
+		
+		Assertions.assertEquals(0.9876, quatroCasas(rep.doubleValue()).doubleValue());
+	}	
 	
 	@Test
 	public void testThreeIntuitionsDelayed() {
@@ -74,7 +86,7 @@ public class TestRegretSubjectReputation {
 		
 		Long t = 6L;
 		Double rep = calc.calculateReputation("b", "reward", intuitions, t);
-		Double rel = calc.calculateReputatioLiability("b", "reward", intuitions, rep, t);
+		Double rel = calc.calculateReputationLiability("b", "reward", intuitions, rep, t);
 		
 		Assertions.assertEquals(0.4864, quatroCasas(rel).doubleValue());				
 	}
