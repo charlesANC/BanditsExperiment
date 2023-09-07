@@ -82,11 +82,15 @@ public class ArmInfo {
 		return new Rating(
 			getName(), 
 			player, 
-			evaluation, 
-			evaluation, 
+			limitInterval(evaluation), 
+			limitInterval(evaluation), 
 			round, 
 			"General", 
 			new Date()
 		);
+	}
+	
+	private double limitInterval(double value) {
+		return Math.min(1D, Math.max(value, 0D));
 	}
 }

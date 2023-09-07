@@ -40,6 +40,7 @@ public class RegretTRMEvaluator implements ArmsEvaluator {
 
 	@Override
 	public synchronized Collection<ArmInfo> evaluateArms(Collection<ArmInfo> armsInfo) {
+		StringBuilder str = new StringBuilder("\r\n---\r\n");
 		
 		RegretTRM regret = new RegretTRM(itm, u, csiSubjectiveReputation, csiWitnessReputarion);
 		
@@ -66,8 +67,13 @@ public class RegretTRMEvaluator implements ArmsEvaluator {
 				t = t + 1;
 				armInfo.setTrustworth(regret.socialReputation(accreditedArm, armInfo.getName(), "reward", intuitions, t));
 				armInfo.setReliability(1.0);
+				
+				str.append("Trustworthy of " + armInfo.getName() + " is " + armInfo.getTrustworth() + "\r\n");				
 			}
 		}
+		
+		str.append("\r\n---\r\n");
+		logger.log(Logger.INFO, str.toString());			
 		
 		return armsInfo;
 	}

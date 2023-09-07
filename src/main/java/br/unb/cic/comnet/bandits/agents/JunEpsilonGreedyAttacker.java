@@ -22,9 +22,9 @@ public class JunEpsilonGreedyAttacker extends Agent {
 	
 	private Logger logger = Logger.getJADELogger(getClass().getName());	
 	
-	private String targetArm;
-	private Double sigma;  // talvez esse tenha de ser um parâmetro do ambiente
-	private Double delta;
+	protected String targetArm;
+	protected Double sigma;  // talvez esse tenha de ser um parâmetro do ambiente
+	protected Double delta;
 	
 	private Double avgAttack;
 	private Double cost;
@@ -173,7 +173,7 @@ public class JunEpsilonGreedyAttacker extends Agent {
 		return targetAverageDiff(targetArm, sigma, delta, armsNumber) * (attackedArmPulls + 1);
 	}
 	
-	private Double targetAverageDiff(
+	protected Double targetAverageDiff(
 		BanditArm targetArm,
 		Double sigma, 
 		Double delta, 

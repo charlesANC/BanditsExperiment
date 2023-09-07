@@ -9,7 +9,15 @@ exp3 exp3:0.07 100 0 1000 0.8 c:\temp\exp3_h_exp3
 01 - epsilon_greedy:0.2 N 10 A 0 1000 c:\temp\logs
 02 - epsilon_greedy:0.2 N 4 A 5 1000 c:\temp\logs
 03 - epsilon_greedy:0.2 N 4 JG 5 1000 c:\temp\logs
-04 - epsilon_greedy:0.2 regret:p1,100,0.5,0.6,0.4 4 JG 5 1000 c:\temp\logs
-05 - epsilon_greedy:0.2 regret:p1,100,0.5,0.6,0.4 4 A 5 1000 c:\temp\logs
+04 - epsilon_greedy:0.2 regret:p1,500,0.6,0.6,0.4 4 JG 5 2000 c:\temp\logs\regret\itm_500
+05 - epsilon_greedy:0.2 regret:p1,500,0.6,0.6,0.4 4 A 5 2000 c:\temp\logs\regret\itm_500
 06 - epsilon_greedy:0.2 fire:p1,0,0.4,0.80,0,0.80 4 JG 5 1000 c:\temp\logs
 07 - epsilon_greedy:0.2 fire:p1,0,0.4,0.80,0,0.80 4 A 5 1000 c:\temp\logs
+
+08 - ucb1 N 10 A 0 1000 c:\temp\logs
+09 - ucb1 N 4 A 5 1000 c:\temp\logs
+10 - ucb1 N 4 JUCB 5 2000 c:\temp\logs
+11 - ucb1 regret:p1,500,0.6,0.6,0.4 4 JUCB 5 2000 c:\temp\logs
+12 - ucb1 regret:p1,500,0.6,0.6,0.4 4 A 5 2000 c:\temp\logs
+13 - ucb1 fire:p1,0,0.4,0.80,0,0.80 4 JUCB 5 2000 c:\temp\logs
+14 - ucb1 fire:p1,0,0.4,0.80,0,0.80 4 A 5 2000 c:\temp\logs

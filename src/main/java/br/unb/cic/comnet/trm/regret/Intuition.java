@@ -61,7 +61,7 @@ public class Intuition {
 	}
 	
 	public Double getIntuition() {
-		return Math.sin( ( Math.PI / 2 ) * getRating() );
+		return Math.sin( ( Math.PI / 2 ) * Math.min(1D, Math.max(0D, getRating())) );
 	}
 	
 	public Double getLiability() {

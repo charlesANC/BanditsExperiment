@@ -39,10 +39,13 @@ public class RegretWitnessReputation {
 		Double witnessTrustSum = witnessTrustValues.values().stream().mapToDouble(w -> w).sum();
 		
 		Double reputation = 0.0;
-		for(String witness : witnesses) {
-			Double oneWitnessReputation = calculateWitnessSubjectiveReputation(witness, agentB, subject, witnessesIntuitions, t);
-			Double witnessTrust = witnessTrustValues.get(witness);			
-			reputation += ( witnessTrust / witnessTrustSum ) * oneWitnessReputation;			
+		
+		if (witnessTrustSum > 0.0) {
+			for(String witness : witnesses) {
+				Double oneWitnessReputation = calculateWitnessSubjectiveReputation(witness, agentB, subject, witnessesIntuitions, t);
+				Double witnessTrust = witnessTrustValues.get(witness);			
+				reputation += ( witnessTrust / witnessTrustSum ) * oneWitnessReputation;
+			}			
 		}
 		
 		return reputation;

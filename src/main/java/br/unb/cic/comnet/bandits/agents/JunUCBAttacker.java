@@ -36,11 +36,19 @@ public class JunUCBAttacker extends JunEpsilonGreedyAttacker {
 		
 		Double attack =  attackedArmAmount(attackedArm) 
 			- accLastAttacks
-			- targetArmAmount(attackedArm, targetArm, armsNumber)
-			- this.capDelta;
+			- ucbTargetArmAmount(attackedArm, targetArm, armsNumber);
 		
 		return Math.max(attack, 0D);
-	}	
+	}
+	
+	protected Double ucbTargetArmAmount(
+		BanditArm attackedArm,
+		BanditArm targetArm, 
+		Integer armsNumber
+	){ 
+		Long attackedArmPulls = attackedArm.getPulls();
+		return (super.targetAverageDiff(targetArm, sigma, delta, armsNumber) - this.capDelta) * (attackedArmPulls + 1);		
+	}
 	
 	@Override
 	protected boolean putCorruption(String armName, Double attack) {
