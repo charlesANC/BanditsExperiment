@@ -3,6 +3,7 @@ package br.unb.cic.comnet.bandits.agents;
 import java.util.Set;
 
 import br.unb.cic.comnet.bandits.environment.Environment;
+import br.unb.cic.comnet.bandits.environment.GeneralParameters;
 import br.unb.cic.comnet.bandits.utils.FileUtils;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.content.lang.Codec;
@@ -30,7 +31,7 @@ public class Player extends Agent {
 	private InfoRounds infoRounds;
 	
 	public Player() {
-		this.infoRounds = new InfoRounds();
+		this.infoRounds = new InfoRounds(getLocalName());
 	}
 	
 	@Override
@@ -57,6 +58,7 @@ public class Player extends Agent {
 				ACLMessage msg = myAgent.receive(template());
 				if (msg != null) {
 					infoRounds.incrementRound();
+					Environment.incrementEnvCurrentRound();
 					
 					String arm = msg.getContent();
 					Environment.getArm(arm).ifPresent(x -> addReward(arm, x.playersPull()));
@@ -146,7 +148,7 @@ public class Player extends Agent {
 	
 	private void addReward(String name, double reward) {
 		//logger.log(Logger.INFO, "Player got " + reward + " from the arm " + name + " at cycle " + infoRounds.getRound() + ".");
-		infoRounds.addReward(name, reward);
+		infoRounds.addReward(name, Environment.getEnvCurrentRound(), reward);
 	}	
 	
 	private void shutdown() {

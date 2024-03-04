@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import br.com.tm.repfogagent.trm.Rating;
+import br.unb.cic.comnet.bandits.agents.ratings.Opinion;
 
 public class ArmInfo {
 	
@@ -69,22 +70,21 @@ public class ArmInfo {
 		return ratings;
 	}	
 	
-	public void addEvaluation(String player, double evaluation) {
+	public void addEvaluation(String player, Opinion opinion) {
 		if (!evaluations.containsKey(player)) {
 			evaluations.put(player, new LinkedHashSet<Rating>());
 		}
 		Set<Rating> ratings = evaluations.get(player);
-		
-		ratings.add(createRating(player, evaluation, ratings.size() + 1));
+		ratings.add(createRating(player, opinion));
 	}
 	
-	private Rating createRating(String player, double evaluation, int round) {
+	private Rating createRating(String player, Opinion opinion) {
 		return new Rating(
 			getName(), 
 			player, 
-			limitInterval(evaluation), 
-			limitInterval(evaluation), 
-			round, 
+			limitInterval(opinion.getRating()), 
+			opinion.getRating(), 
+			opinion.getRound(), 
 			"General", 
 			new Date()
 		);

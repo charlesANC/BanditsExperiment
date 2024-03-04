@@ -22,7 +22,7 @@ public class LoggerAgent extends Agent {
 	
 	private String fileName;
 	
-	private Long playerRound;
+	private Integer playerRound;
 	private Double cummulativeReward;
 	private Double corruptionCost;
 	
@@ -32,7 +32,7 @@ public class LoggerAgent extends Agent {
 	
 	public LoggerAgent() {
 		this.fileName = "execution_X_X_X.txt";
-		this.playerRound = 0L;
+		this.playerRound = 0;
 		this.cummulativeReward = 0D;
 		this.corruptionCost = 0D;
 	}

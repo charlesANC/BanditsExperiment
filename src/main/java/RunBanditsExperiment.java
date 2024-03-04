@@ -1,18 +1,22 @@
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.security.InvalidParameterException;
 
+import br.unb.cic.comnet.bandits.agents.ratings.OpinionsHolder;
 import br.unb.cic.comnet.bandits.environment.GeneralParameters;
 
 public class RunBanditsExperiment {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException, IOException {
 		System.out.println("RunBanditsExperiment - Simulation of bandits experiments written in JADE.");		
 		try {
-			if (args.length < 5) {
+			if (args.length < 6) {
 				System.out.print("Use java -jar RunBandits.jar Algorithm useTrust honestWitnesses attacker cooptedWitnesses ");
 				System.out.println("[numOfRounds][epsilon][outputDirectory] ");
 				System.out.println("   Where: ");
 				System.out.println("      - Algorithm: Can be {epsilon_greedy, epsilon_first, epsilon_decreasing, ucb1}");
 				System.out.println("      - useTrust: T if evaluate using FIRE T&RM or N if using simple average ");
+				System.out.println("      - filePath: Path/name of the file where witnesses ratings are defined. ");
 				System.out.println("      - honestWitnesses: Number of honest witnesses agents to be created.");
 				System.out.println("      - attacker: A to use adaptative heuristics or JG is using Jun e-Greedy.");				
 				System.out.println("      - cooptedWitnesses: Number of coopted witnesses agents to be created.");
@@ -35,24 +39,31 @@ public class RunBanditsExperiment {
 			String evaluationMethod = firstPart(args[1]);			
 			String[] evaluationMethodParameters = secondPart(args[1]);
 			
+			String predefinedOpinionsFileName = args[2];
+			predefinedOpinionsFileName.replace("\"", "");
+			OpinionsHolder holder = new OpinionsHolder();
+			if (!predefinedOpinionsFileName.isEmpty()) {
+				holder = new OpinionsHolder(predefinedOpinionsFileName);
+				holder.processFile();				
+			}
 			
-			int honestWitnesses = Integer.valueOf(args[2]);
+			int honestWitnesses = Integer.valueOf(args[3]);
 			
-			String attackerClass = args[3];
+			String attackerClass = args[4];
 			
-			int cooptedWitnesses = Integer.valueOf(args[4]);
+			int cooptedWitnesses = Integer.valueOf(args[5]);
 			
-			Long numOfRounds = null;
-			if (args.length >= 6) {
-				numOfRounds = Long.valueOf(args[5]);
+			Integer numOfRounds = null;
+			if (args.length >= 7) {
+				numOfRounds = Integer.valueOf(args[6]);
 			}
 			
 			String outputDirectory = null;			
-			if (args.length >= 7) {
-				outputDirectory = args[6];
-			}			
+			if (args.length >= 8) {
+				outputDirectory = args[7];
+			}
 
-			GeneralParameters.initilizeParameters(outputDirectory, numOfRounds, epsilon);
+			GeneralParameters.initilizeParameters(holder, outputDirectory, numOfRounds, epsilon);
 			
 			jade.Boot.main(configuracao(banditAlgorithm, banditAlgorithmParameters, evaluationMethod, evaluationMethodParameters, honestWitnesses, attackerClass, cooptedWitnesses));
 		} catch (InvalidParameterException e) {

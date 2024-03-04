@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.reflect.TypeToken;
 
+import br.unb.cic.comnet.bandits.agents.ratings.Opinion;
 import br.unb.cic.comnet.bandits.agents.trm.ArmsEvaluator;
 import br.unb.cic.comnet.bandits.agents.trm.ArmsEvaluatorFactory;
 import br.unb.cic.comnet.bandits.algorithms.BanditAlgorithm;
@@ -35,6 +36,10 @@ public class Recommender extends Agent {
 	private BanditAlgorithm recommendAlgorithm;
 	private ArmsEvaluator evaluator;
 	
+	private Integer witnessWaiting;
+	private AID requester;
+	private Integer round;
+	
 	public Recommender() {
 		this.armsInfo = new ConcurrentHashMap<String, ArmInfo>();
 	}
@@ -43,26 +48,6 @@ public class Recommender extends Agent {
 	public void setup() {
 		interpretParameters();
 		
-		addBehaviour(new TickerBehaviour(this, 200) {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public void onTick() {
-				try {
-					Set<AID> witnesses = WitnessServiceDescriptor.search(getAgent());
-					for(AID witness : witnesses) {
-						ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-						msg.addReceiver(witness);
-						msg.setProtocol(MessageProtocols.Request_Ratings.name());
-						getAgent().send(msg);							
-					}
-				} catch (FIPAException e) {
-					e.printStackTrace();
-					logger.log(Logger.SEVERE, "I cannot list the witness. " + getName());					
-				}
-			}
-		});
-		
 		addBehaviour(new CyclicBehaviour(this) {
 			private static final long serialVersionUID = 1L;
 
@@ -70,11 +55,16 @@ public class Recommender extends Agent {
 			public void action() {
 				ACLMessage msg = myAgent.receive(template());
 				if (msg != null) {
-					Map<String, Double> ratings = SerializationHelper
+					List<Opinion> opinions = SerializationHelper
 							.unserialize(msg.getContent(), 
-									new TypeToken<Map<String, Double>>(){});
+									new TypeToken<List<Opinion>>(){});
 					
-					processRatings(msg.getSender().getLocalName(), ratings);
+					processRatings(msg.getSender().getLocalName(), opinions);
+					
+					witnessWaiting--;
+					if (witnessWaiting == 0) {
+						sendRecommendation();
+					}
 				} else {
 					block();
 				}
@@ -94,17 +84,7 @@ public class Recommender extends Agent {
 			public void action() {
 				ACLMessage msg = myAgent.receive(template());
 				if (msg != null) {
-					evaluator.evaluateArms(armsInfo.values());					
-					
-					InfoRounds infoRounds = SerializationHelper
-							.unserialize(msg.getContent(), 
-									new TypeToken<InfoRounds>() {}); 
-							
-					ACLMessage response = new ACLMessage(ACLMessage.CONFIRM);
-					response.addReceiver(msg.getSender());
-					response.setProtocol(MessageProtocols.Arm_Recomendation.name());
-					response.setContent(recommendedArm(infoRounds.getRound()));
-					getAgent().send(response);	
+					acceptRequest(msg);
 				} else {
 					block();
 				}
@@ -115,7 +95,7 @@ public class Recommender extends Agent {
 						MessageTemplate.MatchPerformative(ACLMessage.REQUEST), 
 						MessageTemplate.MatchProtocol(MessageProtocols.Request_Arm_Recomendation.name()));
 			}			
-		});		
+		});
 		
 		/*
 		
@@ -152,6 +132,12 @@ public class Recommender extends Agent {
 		publishMe();
 	}
 	
+	@Override
+	public void takeDown() {
+		unpublishMe();
+		logger.log(Logger.INFO, "Getting out of here!");
+	}	
+	
 	private void interpretParameters() {
 		String banditAlgorithmName = "simple_averaging";
 		String evaluatorName = "simplemean";
@@ -180,20 +166,52 @@ public class Recommender extends Agent {
 		}
 		return parameters;
 	}
-
-	@Override
-	public void takeDown() {
-		unpublishMe();
-		logger.log(Logger.INFO, "Getting out of here!");
-	}	
 	
-	private void processRatings(String player, Map<String, Double> ratings) {
-		for(String arm : ratings.keySet()) {
+	private void processRatings(String player, List<Opinion> opinions) {
+		for(Opinion opinion : opinions) {
+			String arm = opinion.getArm();
 			if (!armsInfo.containsKey(arm)) {
 				armsInfo.put(arm, new ArmInfo(arm));
 			} 
-			armsInfo.get(arm).addEvaluation(player, ratings.get(arm));
+			armsInfo.get(arm).addEvaluation(player, opinion);
 		}
+	}
+	
+	private void acceptRequest(ACLMessage msg) {
+		InfoRounds infoRounds = SerializationHelper
+				.unserialize(msg.getContent(), 
+						new TypeToken<InfoRounds>() {}); 
+		
+		this.requester = msg.getSender();
+		this.round = infoRounds.getRound();
+		this.witnessWaiting = requestRatings(round);		
+	}
+	
+	private void sendRecommendation() {
+		evaluator.evaluateArms(armsInfo.values());					
+		ACLMessage response = new ACLMessage(ACLMessage.CONFIRM);
+		response.addReceiver(requester);
+		response.setProtocol(MessageProtocols.Arm_Recomendation.name());
+		response.setContent(recommendedArm(round));
+		send(response);			
+	}
+	
+	private Integer requestRatings(Integer round) {
+		try {
+			Set<AID> witnesses = WitnessServiceDescriptor.search(this);
+			for(AID witness : witnesses) {
+				ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+				msg.addReceiver(witness);
+				msg.setProtocol(MessageProtocols.Request_Ratings.name());
+				msg.setContent(SerializationHelper.serialize(round));
+				this.send(msg);							
+			}
+			return witnesses.size();
+		} catch (FIPAException e) {
+			e.printStackTrace();
+			logger.log(Logger.SEVERE, "I cannot list the witness. " + getName());					
+			return 0;
+		}		
 	}
 	
 	private String recommendedArm(long round) {

@@ -3,6 +3,7 @@ import java.util.Collection;
 import java.util.List;
 
 import br.unb.cic.comnet.bandits.agents.ArmInfo;
+import br.unb.cic.comnet.bandits.agents.ratings.Opinion;
 import br.unb.cic.comnet.bandits.agents.trm.AlphaTrimmedMeanEvaluator;
 import br.unb.cic.comnet.bandits.agents.trm.ShortMeanEvaluator;
 
@@ -57,7 +58,7 @@ public class TestFancyMedians {
 		arms.add(new ArmInfo("teste"));
 		
 		for(Double value : ratings) {
-			arms.get(0).addEvaluation("player", value);
+			arms.get(0).addEvaluation("player", new Opinion(0, "1", "player", value));
 		}
 		
 		return arms;

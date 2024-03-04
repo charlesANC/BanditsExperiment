@@ -41,9 +41,27 @@ public class Environment {
 		return Optional.empty();
 	}
 	
+	public static Integer getEnvCurrentRound() {
+		return getInstance().getCurrentRound();
+	}
+	
+	public static void incrementEnvCurrentRound() {
+		getInstance().incrementCurrentRound();
+	}
+	
 	private List<BanditArm> arms;
+	private Integer currentRound;
+	
+	public Integer getCurrentRound() {
+		return currentRound;
+	}
+	public void incrementCurrentRound() {
+		currentRound++;
+		System.out.println(">>>>> ROUND: " + currentRound + " <<<<<<< ");
+	}		
 	
 	public Environment() {
+		currentRound = 0;
 		arms = new ArrayList<BanditArm>();
 		arms.add(new BanditArm("C1", 0.75, 0.5));
 		arms.add(new BanditArm("C2", 0.75, 0.5));				

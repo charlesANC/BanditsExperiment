@@ -4,25 +4,30 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import br.unb.cic.comnet.bandits.agents.ratings.Opinion;
 import br.unb.cic.comnet.bandits.environment.GeneralParameters;
 import jade.util.leap.Serializable;
 
 public class InfoRounds implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
-	private Long round;
+	private String owner;
+	private Integer round;
 	private String lastPulledArm;
 	private Double lastReward;
 	private Double accumulatedReward;
-	private Map<String, List<Double>> rewards;
 	
-	public Long getRound() {
+	private Map<String, List<Opinion>> rewards;
+	
+	public Integer getRound() {
 		return round;
 	}
-	public void setRound(long round) {
+	public void setRound(int round) {
 		this.round = round;
 	}
 	public void incrementRound() {
@@ -47,6 +52,10 @@ public class InfoRounds implements Serializable {
 		this.lastReward = lastReward;
 	}	
 	
+	public Set<String> getPulledArms() {
+		return rewards.keySet();
+	}
+	
 	public Double getAccumulatedReward() {
 		return accumulatedReward;
 	}
@@ -54,37 +63,46 @@ public class InfoRounds implements Serializable {
 		this.accumulatedReward = accumulatedReward;
 	}
 	
-	public Map<String, List<Double>> getRewards() {
+	public Map<String, List<Opinion>> getRewards() {
 		return rewards;
 	}
-	public void setRewards(Map<String, List<Double>> rewards) {
+	public void setRewards(Map<String, List<Opinion>> rewards) {
 		this.rewards = rewards;
 	}	
 	
-	public InfoRounds() {
-		this.round = 0L;
+	public InfoRounds(String owner) {
+		this.owner = owner;
+		this.round = 0;
 		this.lastPulledArm = "";
 		this.lastReward = 0.0D;
 		this.accumulatedReward = 0.0D;
-		this.rewards = new ConcurrentHashMap<String, List<Double>>();
+		this.rewards = new ConcurrentHashMap<String, List<Opinion>>();
 	}
 	
-	public void addReward(String arm, double reward) {
+	public void addReward(String arm, int round, double reward) {
 		lastPulledArm = arm;
 		lastReward = reward;
 		accumulatedReward += reward;
 		
 		if (!rewards.containsKey(arm)) {
-			rewards.put(arm, new ArrayList<Double>());
+			rewards.put(arm, new Vector<Opinion>());
 		}
-		rewards.get(arm).add(reward);
+		rewards.get(arm).add(new Opinion(round, arm, owner, reward));
+	}
+	
+	public List<Opinion> getLastProductOpinions(int round) {
+		List<Opinion> result = new ArrayList<>();
+		for(String key: rewards.keySet()) {
+			Opinion.lastOpinion(rewards.get(key)).ifPresent(result::add);
+		}
+		return result;
 	}
 	
 	public Map<String, Double> resumeRewards() {
 		Map<String, Double> resumed = new HashMap<String, Double>();
 		for(String arm : rewards.keySet()) {
 			Double informedMean = rewards.get(arm).stream()
-					.collect(Collectors.averagingDouble(x->x));
+					.collect(Collectors.averagingDouble(x->x.getRating()));
 			if (!informedMean.isNaN()) {
 				resumed.put(arm, informedMean);				
 			}
@@ -103,7 +121,9 @@ public class InfoRounds implements Serializable {
 			builder.append(arm);
 			builder.append(";");
 			
-			List<Double> armRatings = rewards.get(arm);
+			List<Double> armRatings = rewards.get(arm).stream()
+					.map(Opinion::getRating)
+						.collect(Collectors.toList());
 			
 			builder.append(armRatings.size());
 			builder.append(";");
