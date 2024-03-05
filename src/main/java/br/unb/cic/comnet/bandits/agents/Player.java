@@ -2,6 +2,8 @@ package br.unb.cic.comnet.bandits.agents;
 
 import java.util.Set;
 
+import com.google.gson.reflect.TypeToken;
+
 import br.unb.cic.comnet.bandits.environment.Environment;
 import br.unb.cic.comnet.bandits.environment.GeneralParameters;
 import br.unb.cic.comnet.bandits.utils.FileUtils;
@@ -94,10 +96,12 @@ public class Player extends Agent {
 			public void action() {
 				ACLMessage msg = myAgent.receive(template());
 				if (msg != null) {
+					int round = extractRound(msg);
+					
 					ACLMessage msgSend = new ACLMessage(ACLMessage.CONFIRM);
 					msgSend.addReceiver(msg.getSender());
 					msgSend.setProtocol(MessageProtocols.Sending_Ratings.name());
-					msgSend.setContent(SerializationHelper.serialize(infoRounds.resumeRewards()));
+					msgSend.setContent(SerializationHelper.serialize(infoRounds.getLastProductOpinions(round)));
 					getAgent().send(msgSend);
 				} else {
 					block();
@@ -122,6 +126,14 @@ public class Player extends Agent {
 		
 		unpublishMe();
 		shutdown();
+	}	
+	
+	private Integer extractRound(ACLMessage msg) {
+		return SerializationHelper
+			.unserialize(
+				msg.getContent(), 
+				new TypeToken<Integer>() {}
+		);
 	}	
 	
 	private void requestArmRecomendation() throws FIPAException {

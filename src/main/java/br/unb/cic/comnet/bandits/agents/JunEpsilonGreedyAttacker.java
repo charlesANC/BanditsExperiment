@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import br.unb.cic.comnet.bandits.arms.BanditArm;
+import br.unb.cic.comnet.bandits.arms.Arm;
 import br.unb.cic.comnet.bandits.environment.Environment;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.core.AID;
@@ -75,17 +75,17 @@ public class JunEpsilonGreedyAttacker extends Agent {
 		}
 	}	
 	
-	private boolean updateCorruption(Map<String, BanditArm> arms) {
+	private boolean updateCorruption(Map<String, Arm> arms) {
 		boolean hasChanges = false;
 		
 		Integer armsNumber = arms.size();
-		BanditArm target = arms.get(targetArm);
-		List<BanditArm> others = new ArrayList<>(arms.values());
+		Arm target = arms.get(targetArm);
+		List<Arm> others = new ArrayList<>(arms.values());
 		others.remove(target);
 		
 		logger.log(Logger.INFO, "** Size of others: " + others.size());
 		
-		for(BanditArm arm : others) {
+		for(Arm arm : others) {
 			Double attack = calculateAttack(arm, target, armsNumber);
 			if (putCorruption(arm.getName(), attack)) {
 				hasChanges = true;
@@ -143,8 +143,8 @@ public class JunEpsilonGreedyAttacker extends Agent {
 	}	
 	
 	protected Double calculateAttack(
-		BanditArm attackedArm,
-		BanditArm targetArm, 
+		Arm attackedArm,
+		Arm targetArm, 
 		Integer armsNumber
 	) {
 		Double attack =  attackedArmAmount(attackedArm) 
@@ -153,7 +153,7 @@ public class JunEpsilonGreedyAttacker extends Agent {
 		return Math.max(attack, 0D);
 	}
 	
-	protected Double attackedArmAmount(BanditArm attackedArm) {
+	protected Double attackedArmAmount(Arm attackedArm) {
 		Double attackedArmAverage = attackedArm.getAverageReward();
 		Long attackedArmPulls = attackedArm.getPulls();
 		
@@ -165,8 +165,8 @@ public class JunEpsilonGreedyAttacker extends Agent {
 	}
 	
 	protected Double targetArmAmount(
-		BanditArm attackedArm,
-		BanditArm targetArm, 
+		Arm attackedArm,
+		Arm targetArm, 
 		Integer armsNumber
 	) {
 		Long attackedArmPulls = attackedArm.getPulls();
@@ -174,7 +174,7 @@ public class JunEpsilonGreedyAttacker extends Agent {
 	}
 	
 	protected Double targetAverageDiff(
-		BanditArm targetArm,
+		Arm targetArm,
 		Double sigma, 
 		Double delta, 
 		Integer armsNumber

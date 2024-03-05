@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import br.unb.cic.comnet.bandits.arms.BanditArm;
+import br.unb.cic.comnet.bandits.arms.Arm;
 import br.unb.cic.comnet.bandits.environment.Environment;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.core.AID;
@@ -98,8 +98,8 @@ public class AdaptiveAttacker extends Agent {
 		return 0D;
 	}
 	
-	private Double calculateTargetArmRatio(Map<String, BanditArm> arms) {
-		Long sum = arms.values().stream().collect(Collectors.summarizingLong(BanditArm::getPulls)).getSum();
+	private Double calculateTargetArmRatio(Map<String, Arm> arms) {
+		Long sum = arms.values().stream().collect(Collectors.summarizingLong(Arm::getPulls)).getSum();
 		Long targetArmPulls = arms.get(targetArm).getPulls();
 		
 		if (sum == 0) return 0D;

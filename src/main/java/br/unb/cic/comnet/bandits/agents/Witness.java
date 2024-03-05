@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Random;
 
 import br.unb.cic.comnet.bandits.agents.ratings.Opinion;
-import br.unb.cic.comnet.bandits.arms.BanditArm;
+import br.unb.cic.comnet.bandits.arms.Arm;
 import br.unb.cic.comnet.bandits.environment.Environment;
 import jade.core.behaviours.TickerBehaviour;
 import jade.util.Logger;
@@ -37,7 +37,7 @@ public class Witness extends AbstractWitness {
 			
 			@Override
 			protected void onTick() {
-				BanditArm arm = drawAArm(Environment.getArms());
+				Arm arm = drawAArm(Environment.getArms());
 				addRating(arm.getName(), arm.pull());
 			}
 		});
@@ -49,7 +49,7 @@ public class Witness extends AbstractWitness {
 		infoRounds.addReward(name, Environment.getEnvCurrentRound(), reward);
 	}
 	
-	private BanditArm drawAArm(List<BanditArm> arms) {
+	private Arm drawAArm(List<Arm> arms) {
 		return arms.get(random.nextInt(arms.size()));
 	}
 

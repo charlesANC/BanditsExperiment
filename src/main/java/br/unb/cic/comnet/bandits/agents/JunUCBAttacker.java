@@ -3,7 +3,7 @@ package br.unb.cic.comnet.bandits.agents;
 import java.util.HashMap;
 import java.util.Map;
 
-import br.unb.cic.comnet.bandits.arms.BanditArm;
+import br.unb.cic.comnet.bandits.arms.Arm;
 
 public class JunUCBAttacker extends JunEpsilonGreedyAttacker {
 
@@ -28,8 +28,8 @@ public class JunUCBAttacker extends JunEpsilonGreedyAttacker {
 	
 	@Override
 	protected Double calculateAttack(
-			BanditArm attackedArm,
-			BanditArm targetArm, 
+			Arm attackedArm,
+			Arm targetArm, 
 			Integer armsNumber
 	) {
 		Double accLastAttacks = accAttacks.getOrDefault(attackedArm.getName(), 0D);
@@ -42,8 +42,8 @@ public class JunUCBAttacker extends JunEpsilonGreedyAttacker {
 	}
 	
 	protected Double ucbTargetArmAmount(
-		BanditArm attackedArm,
-		BanditArm targetArm, 
+		Arm attackedArm,
+		Arm targetArm, 
 		Integer armsNumber
 	){ 
 		Long attackedArmPulls = attackedArm.getPulls();
