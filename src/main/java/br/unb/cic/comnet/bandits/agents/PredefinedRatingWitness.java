@@ -43,8 +43,7 @@ public class PredefinedRatingWitness extends AbstractWitness {
 
 	@Override
 	public Double accumulatedReward() {
-		// TODO Auto-generated method stub
-		return null;
+		return infoRounds.accumulatedReward();
 	}
 
 	@Override

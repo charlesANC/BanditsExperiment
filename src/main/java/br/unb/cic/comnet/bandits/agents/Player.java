@@ -5,7 +5,6 @@ import java.util.Set;
 import com.google.gson.reflect.TypeToken;
 
 import br.unb.cic.comnet.bandits.environment.Environment;
-import br.unb.cic.comnet.bandits.environment.GeneralParameters;
 import br.unb.cic.comnet.bandits.utils.FileUtils;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.content.lang.Codec;

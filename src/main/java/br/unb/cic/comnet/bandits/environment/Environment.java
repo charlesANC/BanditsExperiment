@@ -74,6 +74,7 @@ public class Environment {
 		} else {
 			setPredefinedArms(arms);
 		}
+		System.out.println("**** We have a total of " + arms.size() + "!!!");
 	}
 	
 	private void setDefaultArms(List<Arm> arms) {

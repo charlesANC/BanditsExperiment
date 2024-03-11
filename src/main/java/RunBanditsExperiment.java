@@ -10,13 +10,14 @@ public class RunBanditsExperiment {
 	public static void main(String[] args) throws FileNotFoundException, IOException {
 		System.out.println("RunBanditsExperiment - Simulation of bandits experiments written in JADE.");		
 		try {
-			if (args.length < 6) {
-				System.out.print("Use java -jar RunBandits.jar Algorithm useTrust honestWitnesses attacker cooptedWitnesses ");
+			if (args.length < 7) {
+				System.out.print("Use java -jar RunBandits.jar Algorithm useTrust filePath useWitnessesFromFile honestWitnesses attacker cooptedWitnesses ");
 				System.out.println("[numOfRounds][epsilon][outputDirectory] ");
 				System.out.println("   Where: ");
 				System.out.println("      - Algorithm: Can be {epsilon_greedy, epsilon_first, epsilon_decreasing, ucb1}");
 				System.out.println("      - useTrust: T if evaluate using FIRE T&RM or N if using simple average ");
 				System.out.println("      - filePath: Path/name of the file where witnesses ratings are defined. ");
+				System.out.println("      - useWitnessesFromFile: If Y/y and a filePath is provided, witnesses will be set up from the file. ");				
 				System.out.println("      - honestWitnesses: Number of honest witnesses agents to be created.");
 				System.out.println("      - attacker: A to use adaptative heuristics or JG is using Jun e-Greedy.");				
 				System.out.println("      - cooptedWitnesses: Number of coopted witnesses agents to be created.");
@@ -47,25 +48,37 @@ public class RunBanditsExperiment {
 				holder.processFile();				
 			}
 			
-			int honestWitnesses = Integer.valueOf(args[3]);
+			String witnessesFromFile = args[3];
+			boolean useWitnessesFromFile = ("y".equals(witnessesFromFile) || "Y".equals(witnessesFromFile)) && !holder.isEmpty(); 
 			
-			String attackerClass = args[4];
+			int honestWitnesses = Integer.valueOf(args[4]);
 			
-			int cooptedWitnesses = Integer.valueOf(args[5]);
+			String attackerClass = args[5];
+			
+			int cooptedWitnesses = Integer.valueOf(args[6]);
 			
 			Integer numOfRounds = null;
-			if (args.length >= 7) {
-				numOfRounds = Integer.valueOf(args[6]);
+			if (args.length >= 8) {
+				numOfRounds = Integer.valueOf(args[7]);
 			}
 			
 			String outputDirectory = null;			
-			if (args.length >= 8) {
-				outputDirectory = args[7];
+			if (args.length >= 9) {
+				outputDirectory = args[8];
 			}
 
 			GeneralParameters.initilizeParameters(holder, outputDirectory, numOfRounds, epsilon);
 			
-			jade.Boot.main(configuracao(banditAlgorithm, banditAlgorithmParameters, evaluationMethod, evaluationMethodParameters, honestWitnesses, attackerClass, cooptedWitnesses));
+			jade.Boot.main(configuracao(
+				banditAlgorithm, 
+				banditAlgorithmParameters, 
+				evaluationMethod, 
+				evaluationMethodParameters, 
+				honestWitnesses, 
+				useWitnessesFromFile, 
+				attackerClass, 
+				cooptedWitnesses
+			));
 		} catch (InvalidParameterException e) {
 			System.out.println("Erro: " + e.getMessage());
 		}
@@ -96,6 +109,7 @@ public class RunBanditsExperiment {
 		String evaluatorMethod, 
 		String[] evaluatorMethodParameters, 
 		int honestWitnesses,
+		boolean useWitnessesFromFile,
 		String attackerAlgorithm,		
 		int cooptedWitnesses 
 	) {
@@ -103,6 +117,7 @@ public class RunBanditsExperiment {
 				"-gui", 
 				" -agents " 
 						+ setUpWitnesses(honestWitnesses)
+						+ setUpWitnessesFromFile(useWitnessesFromFile)
 						//+ setUpCooptedWitnesses(cooptedWitnesses)
 						+ setUpRecommender(banditAlgorithm, banditAlgorithmParameters, evaluatorMethod, evaluatorMethodParameters)
 						+ setUpPlayer()
@@ -154,15 +169,29 @@ public class RunBanditsExperiment {
 		return witnesses.toString();
 	}
 	
+	private static String setUpWitnessesFromFile(boolean useWitnessesFomFile) {
+		if (useWitnessesFomFile) {
+			StringBuilder witnesses = new StringBuilder();
+			System.out.println("=======> WITNESSES ACCOUNTS: " + GeneralParameters.getGeneralOpinionHolder().getWitnesses().size());
+			for(String witness : GeneralParameters.getGeneralOpinionHolder().getWitnesses()) {
+				witnesses.append(" wf" + witness + ":br.unb.cic.comnet.bandits.agents.PredefinedRatingWitness(" + witness + ");");
+			}
+			return witnesses.toString();			
+		}
+		return "";
+	}	
+	
 	private static String setUpAttacker(String attackerClass, int cooptedWitnesses) {
 		if (attackerClass.equals("CONST")) {
 			//return ""; TODO: write the heuristic constant attack;
 		} else if (attackerClass.equals("A")) {
-			return "a1:br.unb.cic.comnet.bandits.agents.AdaptiveAttacker(111, 0.60, 0.40, " + cooptedWitnesses + ");";
+			return "a1:br.unb.cic.comnet.bandits.agents.AdaptiveAttacker(C2, 0.60, 0.40, " + cooptedWitnesses + ");";
 		} else if (attackerClass.equals("JG")) {
 			return "a1:br.unb.cic.comnet.bandits.agents.JunEpsilonGreedyAttacker(C2, 0.025, 0.001, " + cooptedWitnesses + ");";
 		} else if (attackerClass.equals("JUCB")) {
 			return "a1:br.unb.cic.comnet.bandits.agents.JunUCBAttacker(C2, 0.025, 0.001, " + cooptedWitnesses + ", 0.10);";
+		} else if (attackerClass.equals("NONE")) {
+			return "";
 		}
 		
 		throw new RuntimeException("Unknown attacker class");

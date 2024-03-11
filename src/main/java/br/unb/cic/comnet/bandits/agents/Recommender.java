@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 
 import com.google.gson.reflect.TypeToken;
 
@@ -20,7 +19,6 @@ import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -216,7 +214,9 @@ public class Recommender extends Agent {
 	}
 	
 	private String recommendedArm(long round) {
-		return recommendAlgorithm.choose(resumeRating(), round);
+		String arm = recommendAlgorithm.choose(resumeRating(), round);
+		System.out.println("****** Recommending arm " + arm + "...");
+		return arm;
 	}
 	
 	private Map<String, Double> resumeRating() {

@@ -2,6 +2,7 @@ package br.unb.cic.comnet.bandits.agents;
 
 import com.google.gson.reflect.TypeToken;
 
+import br.unb.cic.comnet.bandits.arms.Arm;
 import br.unb.cic.comnet.bandits.environment.Environment;
 import br.unb.cic.comnet.bandits.utils.FileUtils;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
@@ -108,20 +109,22 @@ public class LoggerAgent extends Agent {
 	}
 	
 	private String resumeInformation() {
-		return String.format("%d;%.4f;%.4f;%d;%.4f;%d;%.4f;%d;%.4f;%d;%.4f;%d;%.4f;", 
+		StringBuilder line = new StringBuilder();
+		for(Arm arm: Environment.getArms()) {
+			line.append(String.format(
+				"%s;%d;%.4f", 
+				arm.getName(), 
+				arm.getPulls(), 
+				arm.getAverageReward()
+			));
+		}
+		
+		return String.format(
+			"%d;%.4f;%.4f;%s", 
 			playerRound, 
 			cummulativeReward, 
 			corruptionCost,
-			Environment.getArm("A1").get().getPulls(),
-			Environment.getArm("A1").get().getAverageReward(),			
-			Environment.getArm("B1").get().getPulls(),
-			Environment.getArm("B1").get().getAverageReward(),			
-			Environment.getArm("B2").get().getPulls(),
-			Environment.getArm("B2").get().getAverageReward(),			
-			Environment.getArm("C1").get().getPulls(),
-			Environment.getArm("C1").get().getAverageReward(),			
-			Environment.getArm("C2").get().getPulls(), 
-			Environment.getArm("C2").get().getAverageReward()			
+			line.toString()			
 		);
 	}
 	
