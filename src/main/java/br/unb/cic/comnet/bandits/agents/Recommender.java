@@ -15,6 +15,7 @@ import br.unb.cic.comnet.bandits.agents.trm.ArmsEvaluator;
 import br.unb.cic.comnet.bandits.agents.trm.ArmsEvaluatorFactory;
 import br.unb.cic.comnet.bandits.algorithms.BanditAlgorithm;
 import br.unb.cic.comnet.bandits.algorithms.BanditAlgorithmFactory;
+import br.unb.cic.comnet.bandits.environment.Environment;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.core.AID;
 import jade.core.Agent;

@@ -63,7 +63,7 @@ public class Environment {
 	public void incrementCurrentRound() {
 		currentRound++;
 		System.out.println(">>>>> ROUND: " + currentRound + " <<<<<<< ");
-	}		
+	}
 	
 	public Environment() {
 		currentRound = 0;

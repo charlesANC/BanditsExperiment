@@ -5,15 +5,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 /**
  * The order of the ratings must be step, user, product, category, rating
@@ -31,7 +29,7 @@ public class OpinionsHolder {
 	
 	private String fileName;
 	
-	private Map<String, List<Opinion>> opinionsByWitness;
+	private Map<String, InfoRoundsPredefined> opinionsByWitness;
 	private Map<String, Map<Double, Integer>> productRatingsCount;
 	
 	private Double highestRating;
@@ -58,8 +56,10 @@ public class OpinionsHolder {
 		return new HashSet<>(opinionsByWitness.keySet());
 	}
 	
-	public List<Opinion> getOpinionsByWitness(String witness) {
-		return new LinkedList<>(opinionsByWitness.get(witness));
+	public InfoRoundsPredefined getOpinionsByWitness(String witness) {
+		InfoRoundsPredefined info = opinionsByWitness.get(witness);
+		opinionsByWitness.remove(witness);
+		return info;
 	}
 	
 	public Set<String> getProducts() {
@@ -89,6 +89,7 @@ public class OpinionsHolder {
 	}
 	
 	public void processFile() throws FileNotFoundException, IOException {
+		Map<String, List<Opinion>> opinionsMap = new HashMap<>();
 		try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
 			String line;
 			while ((line = br.readLine()) != null) {
@@ -106,10 +107,18 @@ public class OpinionsHolder {
 					lowestRating = rating;
 				}
 				
-				addToOpinions(step, witness, product, rating);
+				addToOpinions(opinionsMap, step, witness, product, rating);
 				addToRatingCount(product, rating);				
 			}
 		}
+		
+		for(String witness : opinionsMap.keySet()) {
+			this.opinionsByWitness.put(
+				witness, 
+				new InfoRoundsPredefined(opinionsMap.get(witness))
+			);
+		}
+		
 		empty = false;
 	}
 	
@@ -117,12 +126,12 @@ public class OpinionsHolder {
 		return Math.min(Math.max((simbol - lowestRating) / (highestRating - lowestRating), 0D), 1D);
 	}
 
-	private void addToOpinions(Integer step, String witness, String product, Double rating) {
-		if (!opinionsByWitness.containsKey(witness)) {
-			opinionsByWitness.put(witness, new LinkedList<>());
+	private void addToOpinions(Map<String, List<Opinion>> opinionsMap, Integer step, String witness, String product, Double rating) {
+		if (!opinionsMap.containsKey(witness)) {
+			opinionsMap.put(witness, new ArrayList<>());
 		}
 		
-		opinionsByWitness.get(witness).add(
+		opinionsMap.get(witness).add(
 			new Opinion(
 				step, 
 				product, 

@@ -17,6 +17,7 @@ public class PredefinedRatingWitness extends AbstractWitness {
 	
 	@Override
 	protected void setup() {
+		logger.info("Setting up the witness " + getLocalName() + "...");
 		interpretParameters();
 		loadPredefinedRatings();
 		
@@ -31,8 +32,7 @@ public class PredefinedRatingWitness extends AbstractWitness {
 	
 	private void loadPredefinedRatings() {
 		if (this.name != null) {
-			List<Opinion> opinions = GeneralParameters.getGeneralOpinionHolder().getOpinionsByWitness(name);
-			this.infoRounds = new InfoRoundsPredefined(opinions);
+			this.infoRounds = GeneralParameters.getGeneralOpinionHolder().getOpinionsByWitness(name);
 		}
 	}
 

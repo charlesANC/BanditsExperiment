@@ -89,11 +89,13 @@ public abstract class AbstractWitness extends Agent {
 	}
 	
 	public void publishMe() {
+		long millis = System.currentTimeMillis();
 		DFAgentDescription desc = new DFAgentDescription();
 		desc.setName(getAID());
 		desc.addServices(WitnessServiceDescriptor.create(getLocalName()));
 		try {
 			DFService.register(this, desc);
+			logger.info("Completing publishing of agent " + getLocalName() + " in " + (System.currentTimeMillis() - millis) + "ms...");			
 		} catch (FIPAException e) {
 			e.printStackTrace();
 			logger.log(Logger.SEVERE, "I cannot publish myself. I am useless. I must die! " + getName());

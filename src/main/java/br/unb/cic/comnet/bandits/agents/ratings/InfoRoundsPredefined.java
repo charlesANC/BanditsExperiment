@@ -9,6 +9,7 @@ public class InfoRoundsPredefined {
 
 	private List<Opinion> opinions;
 	
+
 	public InfoRoundsPredefined(Collection<Opinion> opinions) {
 		this.opinions = new ArrayList<Opinion>(opinions);
 		this.opinions.sort((a, b) -> b.getRound().compareTo(a.getRound()));
@@ -33,7 +34,7 @@ public class InfoRoundsPredefined {
 		
 		return result;
 	}
-	
+
 	public Double accumulatedReward() {
 		return Opinion.sumRatings(opinions);
 	}

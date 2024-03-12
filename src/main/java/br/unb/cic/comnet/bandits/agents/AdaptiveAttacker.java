@@ -19,7 +19,7 @@ import jade.wrapper.StaleProxyException;
 public class AdaptiveAttacker extends Agent {
 	private static final long serialVersionUID = 1L;
 	
-	private static final Double ERROR_EPSILON_DELTA = 0.050D;
+	private static final Double ERROR_EPSILON_DELTA = 0.20D; // 0.050D;
 	
 	private Logger logger = Logger.getJADELogger(getClass().getName());		
 	
