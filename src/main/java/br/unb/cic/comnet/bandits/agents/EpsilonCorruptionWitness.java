@@ -39,7 +39,7 @@ public class EpsilonCorruptionWitness extends AbstractCorruptedWitness {
 				if (msg != null) {
 					Double newEpsilon = SerializationHelper.unserialize(msg.getContent(), new TypeToken<Double>() {});
 					epsilonCorruption = newEpsilon;
-					logger.log(Logger.INFO, "New epsilon informed: " + epsilonCorruption);
+					//logger.log(Logger.INFO, "New epsilon informed: " + epsilonCorruption);
 				} else {
 					block();
 				}

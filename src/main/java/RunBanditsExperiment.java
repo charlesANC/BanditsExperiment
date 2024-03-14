@@ -187,7 +187,7 @@ public class RunBanditsExperiment {
 		if (attackerClass.equals("CONST")) {
 			//return ""; TODO: write the heuristic constant attack;
 		} else if (attackerClass.equals("A")) {
-			return "a1:br.unb.cic.comnet.bandits.agents.AdaptiveAttacker(3816, 0.60, 0.40, " + cooptedWitnesses + ");";
+			return "a1:br.unb.cic.comnet.bandits.agents.AdaptiveAttacker(2447, 0.20, 0.10, " + cooptedWitnesses + ");";
 		} else if (attackerClass.equals("JG")) {
 			return "a1:br.unb.cic.comnet.bandits.agents.JunEpsilonGreedyAttacker(C2, 0.025, 0.001, " + cooptedWitnesses + ");";
 		} else if (attackerClass.equals("JUCB")) {

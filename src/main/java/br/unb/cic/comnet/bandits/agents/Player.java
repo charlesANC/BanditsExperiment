@@ -4,6 +4,7 @@ import java.util.Set;
 
 import com.google.gson.reflect.TypeToken;
 
+import br.unb.cic.comnet.bandits.arms.Arm;
 import br.unb.cic.comnet.bandits.environment.Environment;
 import br.unb.cic.comnet.bandits.utils.FileUtils;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
@@ -15,6 +16,7 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -37,6 +39,21 @@ public class Player extends Agent {
 	
 	@Override
 	public void setup() {
+		addBehaviour(new TickerBehaviour(this, 250) {
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			protected void onTick() {
+				try {
+					requestArmRecomendation();
+				} catch (FIPAException e) {
+					e.printStackTrace();
+					logger.log(Logger.SEVERE, "Could not get the available recommenders.");
+				}
+			}
+		});
+		
+		/*
 		addBehaviour(new OneShotBehaviour(this) {
 			private static final long serialVersionUID = 1L;
 
@@ -50,6 +67,7 @@ public class Player extends Agent {
 				}
 			}
 		});
+		*/
 		
 		addBehaviour(new CyclicBehaviour(this) {
 			private static final long serialVersionUID = 1L;

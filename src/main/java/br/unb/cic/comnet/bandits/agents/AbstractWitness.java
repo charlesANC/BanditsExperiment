@@ -76,7 +76,7 @@ public abstract class AbstractWitness extends Agent {
 	@Override
 	public void takeDown() {
 		unpublishMe();
-		logger.log(Logger.INFO, "My accumulated reward was " + accumulatedReward());
+		//logger.log(Logger.INFO, "My accumulated reward was " + accumulatedReward());
 	}
 	
 	public void unpublishMe() {
@@ -95,7 +95,7 @@ public abstract class AbstractWitness extends Agent {
 		desc.addServices(WitnessServiceDescriptor.create(getLocalName()));
 		try {
 			DFService.register(this, desc);
-			logger.info("Completing publishing of agent " + getLocalName() + " in " + (System.currentTimeMillis() - millis) + "ms...");			
+			//logger.info("Completing publishing of agent " + getLocalName() + " in " + (System.currentTimeMillis() - millis) + "ms...");			
 		} catch (FIPAException e) {
 			e.printStackTrace();
 			logger.log(Logger.SEVERE, "I cannot publish myself. I am useless. I must die! " + getName());
