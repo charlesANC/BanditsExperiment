@@ -10,12 +10,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.reflect.TypeToken;
 
+import br.com.tm.repfogagent.trm.Rating;
 import br.unb.cic.comnet.bandits.agents.ratings.Opinion;
 import br.unb.cic.comnet.bandits.agents.trm.ArmsEvaluator;
 import br.unb.cic.comnet.bandits.agents.trm.ArmsEvaluatorFactory;
 import br.unb.cic.comnet.bandits.algorithms.BanditAlgorithm;
 import br.unb.cic.comnet.bandits.algorithms.BanditAlgorithmFactory;
-import br.unb.cic.comnet.bandits.environment.Environment;
 import br.unb.cic.comnet.bandits.utils.SerializationHelper;
 import jade.core.AID;
 import jade.core.Agent;
@@ -134,6 +134,16 @@ public class Recommender extends Agent {
 	
 	@Override
 	public void takeDown() {
+		// print all ratings received by arm!
+		/*
+		System.out.println("---------");
+		for(String arm: armsInfo.keySet()) {
+			for(Rating r : armsInfo.get(arm).allRatings()) {
+				System.out.println(String.format("%s;%d;%.4f", arm, r.getIteration(), r.getValue()));
+			}
+		}
+		System.out.println("---------");		
+		*/
 		unpublishMe();
 		logger.log(Logger.INFO, "Getting out of here!");
 	}	
@@ -216,7 +226,6 @@ public class Recommender extends Agent {
 	
 	private String recommendedArm(long round) {
 		String arm = recommendAlgorithm.choose(resumeRating(), round);
-		System.out.println("****** Recommending arm " + arm + "...");
 		return arm;
 	}
 	

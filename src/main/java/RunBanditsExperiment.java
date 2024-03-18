@@ -4,6 +4,9 @@ import java.security.InvalidParameterException;
 
 import br.unb.cic.comnet.bandits.agents.ratings.OpinionsHolder;
 import br.unb.cic.comnet.bandits.environment.GeneralParameters;
+import jade.core.Profile;
+import jade.core.ProfileImpl;
+import jade.util.leap.Properties;
 
 public class RunBanditsExperiment {
 
@@ -71,6 +74,7 @@ public class RunBanditsExperiment {
 			
 			System.out.println("Let us begin...");
 			
+			/*
 			jade.Boot.main(configuracao(
 				banditAlgorithm, 
 				banditAlgorithmParameters, 
@@ -81,8 +85,33 @@ public class RunBanditsExperiment {
 				attackerClass, 
 				cooptedWitnesses
 			));
+			*/
+			startTheBagassah(configuracao(
+					banditAlgorithm, 
+					banditAlgorithmParameters, 
+					evaluationMethod, 
+					evaluationMethodParameters, 
+					honestWitnesses, 
+					useWitnessesFromFile, 
+					attackerClass, 
+					cooptedWitnesses
+			));
 		} catch (InvalidParameterException e) {
 			System.out.println("Erro: " + e.getMessage());
+		}
+	}
+	
+	private static void startTheBagassah(String[] config) {
+		try {
+			Properties properties = jade.Boot.parseCmdLineArgs(config);
+	        Profile profile = new ProfileImpl(properties);
+	        profile.setParameter("jade_domain_df_maxresult", "1000");
+			jade.core.Runtime.instance().setCloseVM(true);
+			jade.core.Runtime.instance().createMainContainer(profile);
+		} catch (Exception pe) {
+			System.err.println("Error creating the Profile ["+pe.getMessage()+"]");
+			pe.printStackTrace();
+			System.exit(-1);
 		}
 	}
 	
@@ -187,7 +216,7 @@ public class RunBanditsExperiment {
 		if (attackerClass.equals("CONST")) {
 			//return ""; TODO: write the heuristic constant attack;
 		} else if (attackerClass.equals("A")) {
-			return "a1:br.unb.cic.comnet.bandits.agents.AdaptiveAttacker(2447, 0.20, 0.10, " + cooptedWitnesses + ");";
+			return "a1:br.unb.cic.comnet.bandits.agents.AdaptiveAttacker(117, 0.50, 0.25, " + cooptedWitnesses + ");";
 		} else if (attackerClass.equals("JG")) {
 			return "a1:br.unb.cic.comnet.bandits.agents.JunEpsilonGreedyAttacker(C2, 0.025, 0.001, " + cooptedWitnesses + ");";
 		} else if (attackerClass.equals("JUCB")) {

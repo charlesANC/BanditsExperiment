@@ -105,7 +105,7 @@ public abstract class AbstractCorruptedWitness extends AbstractWitness {
 				opinion.getRound(), 
 				opinion.getArm(),
 				opinion.getWitness(), 
-				opinion.getRating() - corruptionByArm(opinion.getArm())
+				opinion.getRating() + corruptionByArm(opinion.getArm())
 			);
 			
 			corruptedOpinions.add(corruptedOpinion);

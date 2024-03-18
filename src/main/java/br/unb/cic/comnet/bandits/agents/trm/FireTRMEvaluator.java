@@ -52,7 +52,7 @@ public class FireTRMEvaluator implements ArmsEvaluator {
 
 	@Override
 	public synchronized Collection<ArmInfo> evaluateArms(Collection<ArmInfo> armsInfo) {
-		StringBuilder str = new StringBuilder("\r\n---\r\n");
+		StringBuilder str = new StringBuilder("\r\nTfi---\r\n");
 		
 		for(ArmInfo armInfo : armsInfo) {
 			if (!armInfo.getEvaluations().isEmpty()) {
@@ -62,6 +62,9 @@ public class FireTRMEvaluator implements ArmsEvaluator {
 				Map<String, List<Rating>> ratingsPerNode = new LinkedHashMap<>();
 				
 				splitRatings(armInfo.getEvaluations(), accreditedArm, local, supportingRatings, ratingsPerNode);
+				
+				
+				System.out.println(" There are " + local.size() + " ratings for the accredited " + accreditedArm + "...");
 				
 				if (!local.isEmpty() && !supportingRatings.isEmpty()) {
 					
@@ -109,7 +112,7 @@ public class FireTRMEvaluator implements ArmsEvaluator {
 			}
 		}
 		
-		str.append("\r\n---\r\n");
+		str.append("\r\nTff---\r\n");
 		logger.log(Logger.INFO, str.toString());					
 		
 		return armsInfo;

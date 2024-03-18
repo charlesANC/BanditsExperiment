@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * The order of the ratings must be step, user, product, category, rating
@@ -112,14 +114,38 @@ public class OpinionsHolder {
 			}
 		}
 		
+		opinionsMap = opinionsMap.entrySet().stream()
+				.sorted((a,b) -> b.getValue().size() - a.getValue().size())
+				.collect(
+					Collectors.toMap(
+						Map.Entry::getKey, 
+						Map.Entry::getValue, 
+						(l, r) -> l, 
+						LinkedHashMap::new
+					)
+				);
+		
 		for(String witness : opinionsMap.keySet()) {
 			this.opinionsByWitness.put(
 				witness, 
-				new InfoRoundsPredefined(opinionsMap.get(witness))
+				new InfoRoundsPredefined(scaleAll(opinionsMap.get(witness)))
 			);
 		}
 		
 		empty = false;
+	}
+	
+	private List<Opinion> scaleAll(List<Opinion> opinions) {
+		List<Opinion> scaled = new ArrayList<>();
+		for(Opinion opinion : opinions) {
+			scaled.add(new Opinion(
+				opinion.getRound(), 
+				opinion.getArm(), 
+				opinion.getWitness(), 
+				scaleSimbol(opinion.getRating())
+			));
+		}
+		return scaled;
 	}
 	
 	private Double scale(Double simbol) {

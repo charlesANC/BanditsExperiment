@@ -41,7 +41,7 @@ public class AdaptiveAttacker extends Agent {
 	protected void setup() {
 		interpretParameters();
 		
-		addBehaviour(new TickerBehaviour(this, 100) {
+		addBehaviour(new TickerBehaviour(this, 50) {
 			private static final long serialVersionUID = 1L;
 			
 			@Override
@@ -51,7 +51,7 @@ public class AdaptiveAttacker extends Agent {
 					updateEpsilon(epsilonUpdateFactor);
 					informCooptedNewEpsilon();
 				}
-				updateCost();
+				updateCost();					
 			}
 		});		
 		
