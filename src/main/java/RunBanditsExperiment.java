@@ -1,6 +1,8 @@
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.List;
 
 import br.unb.cic.comnet.bandits.agents.ratings.OpinionsHolder;
 import br.unb.cic.comnet.bandits.environment.GeneralParameters;
@@ -203,10 +205,20 @@ public class RunBanditsExperiment {
 	private static String setUpWitnessesFromFile(boolean useWitnessesFomFile) {
 		if (useWitnessesFomFile) {
 			StringBuilder witnesses = new StringBuilder();
-			System.out.println("=======> WITNESSES ACCOUNTS: " + GeneralParameters.getGeneralOpinionHolder().getWitnesses().size());
+			System.out.println("=======> USERS' ACCOUNTS: " + GeneralParameters.getGeneralOpinionHolder().getWitnesses().size());
+			List<String> names = new ArrayList<>();
+			int count = 0;
 			for(String witness : GeneralParameters.getGeneralOpinionHolder().getWitnesses()) {
-				witnesses.append(" wf" + witness + ":br.unb.cic.comnet.bandits.agents.PredefinedRatingWitness(" + witness + ");");
+				names.add(witness);
+				if (names.size() == 100) {
+					witnesses.append(" wf" + (++count) + ":br.unb.cic.comnet.bandits.agents.PredefinedRatingWitness(" + String.join(",", names) + ");");
+					names.clear();
+				}
 			}
+			if (!names.isEmpty()) {
+				witnesses.append(" wf" + (++count) + ":br.unb.cic.comnet.bandits.agents.PredefinedRatingWitness(" + String.join(",", names) + ");");				
+			}
+			System.out.println("=======> WITNESSES: " + count);			
 			return witnesses.toString();			
 		}
 		return "";

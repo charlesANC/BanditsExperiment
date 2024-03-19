@@ -1,5 +1,6 @@
 package br.unb.cic.comnet.bandits.agents;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import br.unb.cic.comnet.bandits.agents.ratings.InfoRoundsPredefined;
@@ -12,8 +13,8 @@ public class PredefinedRatingWitness extends AbstractWitness {
 	
 	Logger logger = Logger.getJADELogger(getClass().getName());
 	
-	private String name;
-	private InfoRoundsPredefined infoRounds;
+	private List<String> witnessesNames;
+	private List<InfoRoundsPredefined> infoRounds;
 	
 	@Override
 	protected void setup() {
@@ -26,24 +27,40 @@ public class PredefinedRatingWitness extends AbstractWitness {
 	
 	private void interpretParameters() {
 		if (getArguments() != null && getArguments().length != 0) {
-			this.name = getArguments()[0].toString();
+			this.witnessesNames = new ArrayList<>();
+			for(int i = 0; i < getArguments().length; i++) {
+				this.witnessesNames.add(getArguments()[i].toString());
+			}
 		}		
 	}
 	
 	private void loadPredefinedRatings() {
-		if (this.name != null) {
-			this.infoRounds = GeneralParameters.getGeneralOpinionHolder().getOpinionsByWitness(name);
+		if (this.witnessesNames != null && !this.witnessesNames.isEmpty()) {
+			this.infoRounds = new ArrayList<>();
+			for(String name : this.witnessesNames) {
+				this.infoRounds.add(
+					GeneralParameters
+						.getGeneralOpinionHolder()
+							.getOpinionsByWitness(name)
+				);
+			}
 		}
 	}
 
 	@Override
 	public List<Opinion> returnOpinions(Integer round) {
-		return infoRounds.getLastProductOpinions(round);
+		List<Opinion> opinions = new ArrayList<>();
+		infoRounds.stream().forEach(i -> opinions.addAll(i.getLastProductOpinions(round)));
+		return opinions;
 	}
 
 	@Override
 	public Double accumulatedReward() {
-		return infoRounds.accumulatedReward();
+		Double accumulated = 0D;
+		for(InfoRoundsPredefined info : this.infoRounds) {
+			accumulated += info.accumulatedReward();
+		}
+		return accumulated;
 	}
 
 	@Override
