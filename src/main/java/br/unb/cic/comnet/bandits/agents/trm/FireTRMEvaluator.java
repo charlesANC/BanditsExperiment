@@ -64,8 +64,6 @@ public class FireTRMEvaluator implements ArmsEvaluator {
 				splitRatings(armInfo.getEvaluations(), accreditedArm, local, supportingRatings, ratingsPerNode);
 				
 				
-				System.out.println(" There are " + local.size() + " ratings for the accredited " + accreditedArm + "...");
-				
 				if (!local.isEmpty() && !supportingRatings.isEmpty()) {
 					
 					WitnessReputationComponent witnessComponent = 
