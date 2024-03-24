@@ -31,10 +31,11 @@ public abstract class FIREBaseComponent {
 				sumValues += w * rating.getNormalizedValue();
 			}
 			
-			this.calculatedValue = sumValues / sumWeightValue;
-			//this.calculatedReliability = reliability(ratings);
-			
-			return sumValues / sumWeightValue; 
+			if (sumWeightValue > 0) {
+				this.calculatedValue = sumValues / sumWeightValue;
+				//this.calculatedReliability = reliability(ratings);
+				return sumValues / sumWeightValue;				
+			}
 		} 
 		
 		return 0;
@@ -56,7 +57,11 @@ public abstract class FIREBaseComponent {
 			sumNumerator += weight(rating, currentIteration) * Math.abs(rating.getNormalizedValue() - componentTrust);
 		}
 		
-		return 1 - 0.5 * ((sumNumerator)/sumWeights(ratings));
+		double sumWeightsValue = sumWeights(ratings);
+		if (sumWeightsValue > 0) {
+			return 1 - 0.5 * (sumNumerator/sumWeightsValue);			
+		}
+		return 0D;
 	}
 	
 	public double sumWeights(List<Rating> ratings) {
