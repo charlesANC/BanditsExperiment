@@ -110,7 +110,7 @@ public class LoggerAgent extends Agent {
 	
 	private String resumeInformation() {
 		StringBuilder line = new StringBuilder();
-		for(Arm arm: Environment.getArms()) {
+		for(Arm arm: Environment.getSortedArms()) {
 			line.append(String.format(
 				"%s;%d;%.4f", 
 				arm.getName(), 

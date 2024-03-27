@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.reflect.TypeToken;
 
-import br.com.tm.repfogagent.trm.Rating;
 import br.unb.cic.comnet.bandits.agents.ratings.Opinion;
 import br.unb.cic.comnet.bandits.agents.trm.ArmsEvaluator;
 import br.unb.cic.comnet.bandits.agents.trm.ArmsEvaluatorFactory;

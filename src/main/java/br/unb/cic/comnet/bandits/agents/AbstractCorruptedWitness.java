@@ -25,6 +25,8 @@ public abstract class AbstractCorruptedWitness extends AbstractWitness {
 	private InfoRounds infoRounds;
 	private Random random;	
 	
+	private double corruption;
+	
 	InfoRounds getInfoRounds() {
 		return infoRounds;
 	}
@@ -38,9 +40,16 @@ public abstract class AbstractCorruptedWitness extends AbstractWitness {
 		
 		this.infoRounds = new InfoRounds(getLocalName());
 		this.random = new SecureRandom();
+		this.corruption = 0D;
 	}
 	
-	public abstract Double resumeCorruption();	
+	public Double resumeCorruption() {
+		return corruption;
+	}	
+	
+	public void resetCorruption() {
+		this.corruption = 0D;
+	}
 	
 	public abstract Double corruptionByArm(String arm);	
 	
@@ -94,6 +103,7 @@ public abstract class AbstractCorruptedWitness extends AbstractWitness {
 			msgSend.setProtocol(MessageProtocols.Inform_Accumm_Cost.name());
 			msgSend.setContent(SerializationHelper.serialize(resumeCorruption()));
 			send(msgSend);						
+			resetCorruption();
 		});
 	}	
 	
@@ -101,11 +111,14 @@ public abstract class AbstractCorruptedWitness extends AbstractWitness {
 		List<Opinion> corruptedOpinions = new ArrayList<>();
 		
 		for(Opinion opinion: opinions) {
+			Double corruptionByArm = corruptionByArm(opinion.getArm());
+			this.corruption += Math.abs(corruptionByArm);
+			
 			Opinion corruptedOpinion = new Opinion(
 				opinion.getRound(), 
 				opinion.getArm(),
 				opinion.getWitness(), 
-				opinion.getRating() + corruptionByArm(opinion.getArm())
+				opinion.getRating() + corruptionByArm
 			);
 			
 			corruptedOpinions.add(corruptedOpinion);

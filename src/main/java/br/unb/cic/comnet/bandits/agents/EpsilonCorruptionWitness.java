@@ -17,11 +17,6 @@ public class EpsilonCorruptionWitness extends AbstractCorruptedWitness {
 	private String armName;
 	
 	@Override
-	public Double resumeCorruption() {
-		return getInfoRounds().getPulledArms().size() * epsilonCorruption;
-	}
-	
-	@Override
 	public Double corruptionByArm(String arm) {
 		return (arm.equals(armName) ? 1 : -1) * epsilonCorruption;
 	}

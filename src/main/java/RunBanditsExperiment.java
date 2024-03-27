@@ -225,8 +225,8 @@ public class RunBanditsExperiment {
 	}	
 	
 	private static String setUpAttacker(String attackerClass, int cooptedWitnesses) {
-		if (attackerClass.equals("CONST")) {
-			//return ""; TODO: write the heuristic constant attack;
+		if (attackerClass.equals("C")) {
+			return "a1:br.unb.cic.comnet.bandits.agents.ConstantCorruptionAttacker(117, " + cooptedWitnesses + ");";
 		} else if (attackerClass.equals("A")) {
 			return "a1:br.unb.cic.comnet.bandits.agents.AdaptiveAttacker(117, 0.30, 0.20, " + cooptedWitnesses + ");";
 		} else if (attackerClass.equals("JG")) {

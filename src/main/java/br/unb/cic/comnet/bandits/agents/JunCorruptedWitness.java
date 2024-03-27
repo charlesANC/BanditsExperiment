@@ -25,11 +25,6 @@ public class JunCorruptedWitness extends AbstractCorruptedWitness {
 	}
 	
 	@Override
-	public Double resumeCorruption() {
-		return corruption.values().stream().mapToDouble(Math::abs).sum();
-	}
-	
-	@Override
 	public Double corruptionByArm(String arm) {
 		if (corruption == null || !corruption.containsKey(arm)) {
 			return 0D;

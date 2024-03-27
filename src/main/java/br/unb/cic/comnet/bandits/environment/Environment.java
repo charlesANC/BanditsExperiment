@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -25,6 +27,12 @@ public class Environment {
 	
 	public static List<Arm> getArms() {
 		return Collections.unmodifiableList(getInstance().arms);
+	}
+	
+	public static Set<Arm> getSortedArms() {
+		SortedSet<Arm> sorted = new TreeSet<>((a, b) -> a.getName().compareTo(b.getName()));
+		sorted.addAll(getArms());
+		return Collections.unmodifiableSortedSet(sorted);
 	}
 	
 	public static Map<String, Arm> getArmsMap() {
